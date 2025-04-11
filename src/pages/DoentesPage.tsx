@@ -10,6 +10,7 @@ import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import DoentesList from '@/components/cards/DoentesList';
 
 const DoentesPage = () => {
   const { toast } = useToast();
@@ -99,6 +100,14 @@ const DoentesPage = () => {
                 />
               ))}
             </div>
+            {/* <div >
+              {filteredDoentes.map((doente) => (
+                <DoentesList
+                  doentes={filteredDoentes}
+                  onDeleteDoente={handleDeleteDoente}
+                />
+              ))}
+            </div> */}
           </ScrollArea>
         )}
       </div>
