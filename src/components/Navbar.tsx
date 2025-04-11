@@ -2,11 +2,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, Users, UserPlus, LogOut, UserCog } from 'lucide-react';
+import { Calendar, Users, UserPlus, LogOut, UserCog, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout, currentMinistro } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -45,7 +45,12 @@ const Navbar = () => {
                     Agendamentos
                   </Link>
                   
-                  <Button variant="outline" size="sm" className="ml-4" onClick={handleLogout}>
+                  <div className="flex items-center ml-4 mr-4 text-sm">
+                    <User className="mr-2" size={16} />
+                    <span>Olá, {currentMinistro?.nome}</span>
+                  </div>
+                  
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
                     <LogOut className="mr-2" size={16} />
                     Sair
                   </Button>

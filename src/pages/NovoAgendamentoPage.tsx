@@ -3,30 +3,46 @@ import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import AgendamentoForm from '@/components/forms/AgendamentoForm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { addAgendamento, getDoentes, getMinistros } from '@/services/mock-data';
+import { addAgendamento, getDoentes, getMinistros, getAgendamentos } from '@/services/mock-data';
 import { toast } from '@/hooks/use-toast';
-import { Doente, Ministro } from '@/types';
+import { Doente, Ministro, Agendamento } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 const NovoAgendamentoPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const doenteIdParam = searchParams.get('doenteId');
+  const { isAdmin, currentMinistro } = useAuth();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [doentes, setDoentes] = useState<Doente[]>([]);
   const [ministros, setMinistros] = useState<Ministro[]>([]);
+  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
+    // Verify that the user has permission to access this page
+    if (!isAdmin) {
+      toast({
+        title: "Acesso restrito",
+        description: "Apenas administradores podem criar agendamentos para outros ministros.",
+        variant: "destructive",
+      });
+      navigate('/');
+      return;
+    }
+    
     const fetchData = async () => {
       try {
-        const [doentesData, ministrosData] = await Promise.all([
+        const [doentesData, ministrosData, agendamentosData] = await Promise.all([
           getDoentes(),
-          getMinistros()
+          getMinistros(),
+          getAgendamentos()
         ]);
         
         setDoentes(doentesData);
         setMinistros(ministrosData);
+        setAgendamentos(agendamentosData);
       } catch (error) {
         toast({
           title: "Erro ao carregar dados",
@@ -39,7 +55,7 @@ const NovoAgendamentoPage = () => {
     };
 
     fetchData();
-  }, []);
+  }, [isAdmin, navigate]);
   
   const handleSubmit = async (data: {
     doenteId: string;
@@ -51,6 +67,23 @@ const NovoAgendamentoPage = () => {
     setIsSubmitting(true);
     
     try {
+      // Check if doente already has a pending appointment
+      const doenteHasPendingAppointment = agendamentos.some(
+        agendamento => 
+          agendamento.doenteId === data.doenteId && 
+          agendamento.status === 'agendado'
+      );
+      
+      if (doenteHasPendingAppointment) {
+        toast({
+          title: "Doente já possui agendamento",
+          description: "Este doente já possui uma visita agendada que ainda não foi concluída.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       await addAgendamento(data);
       
       toast({

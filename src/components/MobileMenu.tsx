@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Calendar, Users, UserCog, LogOut } from 'lucide-react';
+import { Menu, X, Calendar, Users, UserCog, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
 const MobileMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout, currentMinistro } = useAuth();
   const navigate = useNavigate();
 
   const toggleMenu = () => {
@@ -36,6 +36,11 @@ const MobileMenu = () => {
           <div className="px-2 pt-2 pb-3 space-y-1">
             {isAuthenticated ? (
               <>
+                <div className="px-3 py-2 text-primary-foreground flex items-center">
+                  <User className="inline-block mr-2" size={18} />
+                  <span>Olá, {currentMinistro?.nome}</span>
+                </div>
+                
                 <Link
                   to="/doentes"
                   className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary-foreground/10"
