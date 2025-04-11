@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Phone, MapPin, FileText } from 'lucide-react';
+import { Calendar as CalendarIcon, Phone, MapPin, FileText, AlertCircle } from 'lucide-react';
 import { Doente } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -12,11 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { addAgendamento } from '@/services/mock-data';
+import { addAgendamento, hasActiveScheduling } from '@/services/mock-data';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
+import { Badge } from '@/components/ui/badge';
 
 interface DoentesCardProps {
   doente: Doente;
@@ -28,9 +29,19 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
   const [hora, setHora] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasActiveVisit, setHasActiveVisit] = useState(false);
   
   const { currentMinistro } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkActiveVisit = async () => {
+      const hasActive = await hasActiveScheduling(doente.id);
+      setHasActiveVisit(hasActive);
+    };
+    
+    checkActiveVisit();
+  }, [doente.id]);
   
   const handleAgendarVisita = () => {
     setIsDialogOpen(true);
@@ -51,6 +62,18 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
     setIsSubmitting(true);
     
     try {
+      const activeVisit = await hasActiveScheduling(doente.id);
+      
+      if (activeVisit) {
+        toast({
+          title: "Agendamento não permitido",
+          description: "Este doente já possui uma visita agendada que ainda não foi concluída.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       await addAgendamento({
         doenteId: doente.id,
         ministroId: currentMinistro.id,
@@ -81,7 +104,14 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
     <>
       <Card className="h-full flex flex-col">
         <CardHeader>
-          <CardTitle className="text-xl">{doente.nome}</CardTitle>
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-xl">{doente.nome}</CardTitle>
+            {hasActiveVisit && (
+              <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+                Visita Agendada
+              </Badge>
+            )}
+          </div>
           <CardDescription>
             Cadastrado em {format(new Date(doente.createdAt), "PPP", { locale: ptBR })}
           </CardDescription>
@@ -91,6 +121,10 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
             <div className="flex items-start">
               <MapPin className="h-4 w-4 mr-2 mt-1" />
               <p className="text-sm text-muted-foreground">{doente.endereco}</p>
+            </div>
+            <div className="flex items-start">
+              <MapPin className="h-4 w-4 mr-2 mt-1" />
+              <p className="text-sm text-muted-foreground">Setor: {doente.setor}</p>
             </div>
             <div className="flex items-center">
               <Phone className="h-4 w-4 mr-2" />
@@ -109,9 +143,19 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
             className="w-full" 
             onClick={handleAgendarVisita}
             variant="outline"
+            disabled={hasActiveVisit}
           >
-            <CalendarIcon className="h-4 w-4 mr-2" />
-            Agendar Visita
+            {hasActiveVisit ? (
+              <>
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Já Possui Visita Agendada
+              </>
+            ) : (
+              <>
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Agendar Visita
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>

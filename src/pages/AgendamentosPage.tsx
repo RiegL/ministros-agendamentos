@@ -11,6 +11,7 @@ import { Agendamento, Doente, Ministro } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AgendamentosPage = () => {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
@@ -23,6 +24,7 @@ const AgendamentosPage = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const ministroIdParam = searchParams.get('ministroId');
+  const { currentMinistro, isAdmin } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,12 +35,24 @@ const AgendamentosPage = () => {
           getMinistros()
         ]);
         
-        setAgendamentos(agendamentosData);
+        // Filter agendamentos based on user role
+        let filteredAgendamentos = agendamentosData;
+        if (!isAdmin && currentMinistro) {
+          // Regular users can only see their own agendamentos
+          filteredAgendamentos = agendamentosData.filter(
+            a => a.ministroId === currentMinistro.id
+          );
+        }
+        
+        setAgendamentos(filteredAgendamentos);
         setDoentes(doentesData);
         setMinistros(ministrosData);
         
         if (ministroIdParam) {
           setMinistroFilter(ministroIdParam);
+        } else if (!isAdmin && currentMinistro) {
+          // Set filter to current ministro for regular users
+          setMinistroFilter(currentMinistro.id);
         }
       } catch (error) {
         toast({
@@ -52,7 +66,7 @@ const AgendamentosPage = () => {
     };
 
     fetchData();
-  }, [toast, ministroIdParam]);
+  }, [toast, ministroIdParam, currentMinistro, isAdmin]);
 
   const handleConcluirAgendamento = async (agendamentoId: string) => {
     try {
@@ -99,6 +113,7 @@ const AgendamentosPage = () => {
       id: '',
       nome: 'Doente não encontrado',
       endereco: '',
+      setor: '',
       telefone: '',
       createdAt: new Date(),
       cadastradoPor: '',
@@ -124,7 +139,8 @@ const AgendamentosPage = () => {
     
     const matchesSearch = 
       doente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ministro.nome.toLowerCase().includes(searchTerm.toLowerCase());
+      ministro.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doente.setor.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = 
       statusFilter === 'todos' || 
@@ -182,21 +198,23 @@ const AgendamentosPage = () => {
               </Select>
             </div>
             
-            <div className="flex-1">
-              <Select value={ministroFilter} onValueChange={setMinistroFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filtrar por ministro" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os ministros</SelectItem>
-                  {ministros.map(ministro => (
-                    <SelectItem key={ministro.id} value={ministro.id}>
-                      {ministro.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {isAdmin && (
+              <div className="flex-1">
+                <Select value={ministroFilter} onValueChange={setMinistroFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por ministro" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os ministros</SelectItem>
+                    {ministros.map(ministro => (
+                      <SelectItem key={ministro.id} value={ministro.id}>
+                        {ministro.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
 

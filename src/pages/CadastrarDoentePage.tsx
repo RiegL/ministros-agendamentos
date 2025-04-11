@@ -15,6 +15,7 @@ const CadastrarDoentePage = () => {
   const handleSubmit = async (data: {
     nome: string;
     endereco: string;
+    setor: string;
     telefone: string;
     observacoes: string;
   }) => {

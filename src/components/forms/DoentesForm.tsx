@@ -11,6 +11,7 @@ interface DoentesFormProps {
   onSubmit: (data: {
     nome: string;
     endereco: string;
+    setor: string;
     telefone: string;
     observacoes: string;
   }) => void;
@@ -21,13 +22,14 @@ const DoentesForm = ({ onSubmit, isLoading = false }: DoentesFormProps) => {
   const { toast } = useToast();
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
+  const [setor, setSetor] = useState('');
   const [telefone, setTelefone] = useState('');
   const [observacoes, setObservacoes] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!nome || !endereco || !telefone) {
+    if (!nome || !endereco || !setor || !telefone) {
       toast({
         title: "Dados incompletos",
         description: "Preencha todos os campos obrigatórios.",
@@ -39,6 +41,7 @@ const DoentesForm = ({ onSubmit, isLoading = false }: DoentesFormProps) => {
     onSubmit({
       nome,
       endereco,
+      setor,
       telefone,
       observacoes
     });
@@ -46,6 +49,7 @@ const DoentesForm = ({ onSubmit, isLoading = false }: DoentesFormProps) => {
     // Reset form
     setNome('');
     setEndereco('');
+    setSetor('');
     setTelefone('');
     setObservacoes('');
   };
@@ -75,9 +79,20 @@ const DoentesForm = ({ onSubmit, isLoading = false }: DoentesFormProps) => {
             <Label htmlFor="endereco">Endereço Completo*</Label>
             <Input
               id="endereco"
-              placeholder="Rua, número, bairro, cidade"
+              placeholder="Rua, número, cidade"
               value={endereco}
               onChange={(e) => setEndereco(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="setor">Setor*</Label>
+            <Input
+              id="setor"
+              placeholder="Setor do doente"
+              value={setor}
+              onChange={(e) => setSetor(e.target.value)}
               required
             />
           </div>

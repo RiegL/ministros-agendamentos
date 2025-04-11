@@ -13,6 +13,7 @@ export interface Doente {
   id: string;
   nome: string;
   endereco: string;
+  setor: string; // Added setor field
   telefone: string;
   observacoes?: string;
   createdAt: Date;

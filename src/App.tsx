@@ -14,6 +14,7 @@ import AgendamentosPage from "./pages/AgendamentosPage";
 import CadastrarDoentePage from "./pages/CadastrarDoentePage";
 import CadastrarMinistroPage from "./pages/CadastrarMinistroPage";
 import NovoAgendamentoPage from "./pages/NovoAgendamentoPage";
+import RelatoriosPage from "./pages/RelatoriosPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/agendamentos" element={<AgendamentosPage />} />
               <Route path="/cadastrar-doente" element={<CadastrarDoentePage />} />
               <Route path="/novo-agendamento" element={<NovoAgendamentoPage />} />
+              <Route path="/relatorios" element={<RelatoriosPage />} />
             </Route>
             
             {/* Admin Only Routes */}

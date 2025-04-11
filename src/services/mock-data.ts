@@ -39,6 +39,7 @@ const doentes: Doente[] = [
     id: '1',
     nome: 'Ana Ferreira',
     endereco: 'Rua das Flores, 123 - Centro',
+    setor: 'Centro',
     telefone: '(11) 98888-7777',
     observacoes: 'Prefere visitas no período da tarde.',
     createdAt: new Date('2023-03-15'),
@@ -48,6 +49,7 @@ const doentes: Doente[] = [
     id: '2',
     nome: 'Carlos Mendes',
     endereco: 'Av. Principal, 456 - Jardim Europa',
+    setor: 'Jardim Europa',
     telefone: '(11) 97777-6666',
     observacoes: 'Acamado, necessita de atenção especial.',
     createdAt: new Date('2023-04-20'),
@@ -57,6 +59,7 @@ const doentes: Doente[] = [
     id: '3',
     nome: 'Lúcia Costa',
     endereco: 'Rua dos Girassóis, 789 - Vila Nova',
+    setor: 'Vila Nova',
     telefone: '(11) 96666-5555',
     createdAt: new Date('2023-05-10'),
     cadastradoPor: '1',
@@ -105,6 +108,16 @@ const agendamentos: Agendamento[] = [
   },
 ];
 
+// Check if a doente already has an active scheduling
+export const hasActiveScheduling = (doenteId: string): Promise<boolean> => {
+  const hasActive = agendamentos.some(a => 
+    a.doenteId === doenteId && 
+    a.status === 'agendado'
+  );
+  
+  return Promise.resolve(hasActive);
+};
+
 // Serviços de mock para manipular os dados
 export const getMinistros = (): Promise<Ministro[]> => {
   return Promise.resolve([...ministros]);
@@ -116,6 +129,11 @@ export const getDoentes = (): Promise<Doente[]> => {
 
 export const getAgendamentos = (): Promise<Agendamento[]> => {
   return Promise.resolve([...agendamentos]);
+};
+
+// Get agendamentos for a specific ministro
+export const getAgendamentosByMinistroId = (ministroId: string): Promise<Agendamento[]> => {
+  return Promise.resolve(agendamentos.filter(a => a.ministroId === ministroId));
 };
 
 export const addMinistro = (newMinistro: Omit<Ministro, 'id' | 'createdAt'>): Promise<Ministro> => {
