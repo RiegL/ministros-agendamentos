@@ -4,11 +4,10 @@ import Layout from '@/components/Layout';
 import MinistrosForm from '@/components/forms/MinistrosForm';
 import { useNavigate } from 'react-router-dom';
 import { addMinistro } from '@/services/mock-data';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 const CadastrarMinistroPage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   const handleSubmit = async (data: {

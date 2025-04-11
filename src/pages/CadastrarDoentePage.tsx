@@ -4,11 +4,12 @@ import Layout from '@/components/Layout';
 import DoentesForm from '@/components/forms/DoentesForm';
 import { useNavigate } from 'react-router-dom';
 import { addDoente } from '@/services/mock-data';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CadastrarDoentePage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { currentMinistro } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   const handleSubmit = async (data: {
@@ -17,15 +18,21 @@ const CadastrarDoentePage = () => {
     telefone: string;
     observacoes: string;
   }) => {
+    if (!currentMinistro) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para cadastrar doentes.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // Simulando o ID do ministro logado
-      const ministroId = '1';
-      
       await addDoente({
         ...data,
-        cadastradoPor: ministroId
+        cadastradoPor: currentMinistro.id
       });
       
       toast({

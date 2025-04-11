@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { addAgendamento } from '@/services/mock-data';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 interface DoentesCardProps {
@@ -29,7 +29,6 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { currentMinistro } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
   
   const handleAgendarVisita = () => {

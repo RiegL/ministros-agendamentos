@@ -4,12 +4,11 @@ import Layout from '@/components/Layout';
 import AgendamentoForm from '@/components/forms/AgendamentoForm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addAgendamento, getDoentes, getMinistros } from '@/services/mock-data';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Doente, Ministro } from '@/types';
 
 const NovoAgendamentoPage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const doenteIdParam = searchParams.get('doenteId');
   
@@ -40,7 +39,7 @@ const NovoAgendamentoPage = () => {
     };
 
     fetchData();
-  }, [toast]);
+  }, []);
   
   const handleSubmit = async (data: {
     doenteId: string;

@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Ministro, AuthContextType } from '@/types';
 import { getMinistros } from '@/services/mock-data';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 // Initial auth context state
 const initialAuthContext: AuthContextType = {
@@ -24,7 +24,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentMinistro, setCurrentMinistro] = useState<Ministro | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const { toast } = useToast();
 
   // Check for stored session on mount
   useEffect(() => {
