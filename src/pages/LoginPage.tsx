@@ -45,7 +45,7 @@ const LoginPage = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-
+// alterado
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-100 p-4">
       <Card className="w-full max-w-md">
