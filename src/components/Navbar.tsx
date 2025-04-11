@@ -6,7 +6,7 @@ import { Calendar, Users, UserPlus, LogOut } from 'lucide-react';
 
 const Navbar = () => {
   return (
-    <nav className="bg-primary text-primary-foreground shadow-md">
+    <div className="bg-primary text-primary-foreground shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
@@ -37,7 +37,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-    </nav>
+    </div>
   );
 };
 
