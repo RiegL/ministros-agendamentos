@@ -15,6 +15,8 @@ const CadastrarMinistroPage = () => {
     nome: string;
     email: string;
     telefone: string;
+    senha: string;
+    role: 'admin' | 'user';
   }) => {
     setIsSubmitting(true);
     

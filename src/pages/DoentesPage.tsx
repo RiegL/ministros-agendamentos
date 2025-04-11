@@ -5,7 +5,7 @@ import DoentesCard from '@/components/cards/DoentesCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UserPlus, Search } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { getDoentes } from '@/services/mock-data';
 import { Doente } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +15,6 @@ const DoentesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDoentes = async () => {
@@ -35,10 +34,6 @@ const DoentesPage = () => {
 
     fetchDoentes();
   }, [toast]);
-
-  const handleAgendarVisita = (doenteId: string) => {
-    navigate(`/novo-agendamento?doenteId=${doenteId}`);
-  };
 
   const filteredDoentes = doentes.filter(doente =>
     doente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -93,7 +88,6 @@ const DoentesPage = () => {
               <DoentesCard
                 key={doente.id}
                 doente={doente}
-                onAgendarVisita={handleAgendarVisita}
               />
             ))}
           </div>

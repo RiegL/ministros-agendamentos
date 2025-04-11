@@ -4,6 +4,8 @@ export interface Ministro {
   nome: string;
   email: string;
   telefone: string;
+  role: 'admin' | 'user';
+  senha: string; // For simplicity, we'll store plaintext password in mock data
   createdAt: Date;
 }
 
@@ -26,4 +28,12 @@ export interface Agendamento {
   status: 'agendado' | 'concluido' | 'cancelado';
   observacoes?: string;
   createdAt: Date;
+}
+
+export interface AuthContextType {
+  currentMinistro: Ministro | null;
+  isAdmin: boolean;
+  isAuthenticated: boolean;
+  login: (email: string, senha: string) => Promise<boolean>;
+  logout: () => void;
 }
