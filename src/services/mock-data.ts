@@ -31,6 +31,33 @@ const ministros: Ministro[] = [
     senha: 'senha123',
     createdAt: new Date('2023-03-10'),
   },
+  {
+    id: '4',
+    nome: 'Ana Costa',
+    email: 'ana@exemplo.com',
+    telefone: '(11) 93456-7890',
+    role: 'user',
+    senha: 'senha123',
+    createdAt: new Date('2023-04-05'),
+  },
+  {
+    id: '5',
+    nome: 'Lucas Almeida',
+    email: 'lucas@exemplo.com',
+    telefone: '(11) 94567-8901',
+    role: 'user',
+    senha: 'senha123',
+    createdAt: new Date('2023-05-15'),
+  },
+  {
+    id: '6',
+    nome: 'Fernanda Oliveira',
+    email: 'fernanda@exemplo.com',
+    telefone: '(11) 95678-9012',
+    role: 'user',
+    senha: 'senha123',
+    createdAt: new Date('2023-06-20'),
+  }
 ];
 
 // Mock data para doentes

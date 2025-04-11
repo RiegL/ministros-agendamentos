@@ -64,11 +64,21 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
     onSubmit({
       doenteId,
       ministroId,
-      ministroSecundarioId: hasSecondaryMinister ? ministroSecundarioId : undefined,
       data,
       hora,
-      observacoes
+      observacoes,
     });
+    
+    // Se houver ministro secundário, envia também para ele
+    if (hasSecondaryMinister && ministroSecundarioId) {
+      onSubmit({
+        doenteId,
+        ministroId: ministroSecundarioId, // agora ele é o principal nesse agendamento
+        data,
+        hora,
+        observacoes: `(Ministro Secundário) ${observacoes}`,
+      });
+    }
     
     // Reset form
     setDoenteId('');
