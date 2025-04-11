@@ -1,53 +1,60 @@
-
-import React, { useEffect, useState } from 'react';
-import Layout from '@/components/Layout';
-import AgendamentoCard from '@/components/cards/AgendamentoCard';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { CalendarPlus, Search, Filter } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { getAgendamentos, getDoentes, getMinistros, updateAgendamentoStatus } from '@/services/mock-data';
-import { Agendamento, Doente, Ministro } from '@/types';
-import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useEffect, useState } from "react";
+import Layout from "@/components/Layout";
+import AgendamentoCard from "@/components/cards/AgendamentoCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { CalendarPlus, Search, Filter } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import {
+  getAgendamentos,
+  getDoentes,
+  getMinistros,
+  updateAgendamentoStatus,
+} from "@/services/mock-data";
+import { Agendamento, Doente, Ministro } from "@/types";
+import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AgendamentosPage = () => {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [doentes, setDoentes] = useState<Doente[]>([]);
   const [ministros, setMinistros] = useState<Ministro[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('todos');
-  const [ministroFilter, setMinistroFilter] = useState<string>('todos');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [ministroFilter, setMinistroFilter] = useState<string>("todos");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
-  const ministroIdParam = searchParams.get('ministroId');
+  const ministroIdParam = searchParams.get("ministroId");
   const { currentMinistro, isAdmin } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [agendamentosData, doentesData, ministrosData] = await Promise.all([
-          getAgendamentos(),
-          getDoentes(),
-          getMinistros()
-        ]);
-        
+        const [agendamentosData, doentesData, ministrosData] =
+          await Promise.all([getAgendamentos(), getDoentes(), getMinistros()]);
+
         // Filter agendamentos based on user role
         let filteredAgendamentos = agendamentosData;
         if (!isAdmin && currentMinistro) {
           // Regular users can only see their own agendamentos
           filteredAgendamentos = agendamentosData.filter(
-            a => a.ministroId === currentMinistro.id
+            (a) => a.ministroId === currentMinistro.id
           );
         }
-        
+
         setAgendamentos(filteredAgendamentos);
         setDoentes(doentesData);
         setMinistros(ministrosData);
-        
+
         if (ministroIdParam) {
           setMinistroFilter(ministroIdParam);
         } else if (!isAdmin && currentMinistro) {
@@ -70,14 +77,19 @@ const AgendamentosPage = () => {
 
   const handleConcluirAgendamento = async (agendamentoId: string) => {
     try {
-      const updatedAgendamento = await updateAgendamentoStatus(agendamentoId, 'concluido');
-      setAgendamentos(agendamentos.map(a => 
-        a.id === agendamentoId ? updatedAgendamento : a
-      ));
-      
+      const updatedAgendamento = await updateAgendamentoStatus(
+        agendamentoId,
+        "concluido"
+      );
+      setAgendamentos(
+        agendamentos.map((a) =>
+          a.id === agendamentoId ? updatedAgendamento : a
+        )
+      );
+
       toast({
         title: "Agendamento concluído",
-        description: "O agendamento foi marcado como concluído com sucesso."
+        description: "O agendamento foi marcado como concluído com sucesso.",
       });
     } catch (error) {
       toast({
@@ -90,14 +102,19 @@ const AgendamentosPage = () => {
 
   const handleCancelarAgendamento = async (agendamentoId: string) => {
     try {
-      const updatedAgendamento = await updateAgendamentoStatus(agendamentoId, 'cancelado');
-      setAgendamentos(agendamentos.map(a => 
-        a.id === agendamentoId ? updatedAgendamento : a
-      ));
-      
+      const updatedAgendamento = await updateAgendamentoStatus(
+        agendamentoId,
+        "cancelado"
+      );
+      setAgendamentos(
+        agendamentos.map((a) =>
+          a.id === agendamentoId ? updatedAgendamento : a
+        )
+      );
+
       toast({
         title: "Agendamento cancelado",
-        description: "O agendamento foi cancelado com sucesso."
+        description: "O agendamento foi cancelado com sucesso.",
       });
     } catch (error) {
       toast({
@@ -109,47 +126,49 @@ const AgendamentosPage = () => {
   };
 
   const getDoentePorId = (id: string) => {
-    return doentes.find(d => d.id === id) || {
-      id: '',
-      nome: 'Doente não encontrado',
-      endereco: '',
-      setor: '',
-      telefone: '',
-      createdAt: new Date(),
-      cadastradoPor: '',
-    };
+    return (
+      doentes.find((d) => d.id === id) || {
+        id: "",
+        nome: "Doente não encontrado",
+        endereco: "",
+        setor: "",
+        telefone: "",
+        createdAt: new Date(),
+        cadastradoPor: "",
+      }
+    );
   };
 
   const getMinistroPorId = (id: string) => {
-    return ministros.find(m => m.id === id) || {
-      id: '',
-      nome: 'Ministro não encontrado',
-      email: '',
-      telefone: '',
-      role: 'user' as 'admin' | 'user',
-      senha: '',
-      createdAt: new Date(),
-    };
+    return (
+      ministros.find((m) => m.id === id) || {
+        id: "",
+        nome: "Ministro não encontrado",
+        email: "",
+        telefone: "",
+        role: "user" as "admin" | "user",
+        senha: "",
+        createdAt: new Date(),
+      }
+    );
   };
 
   // Filtragem dos agendamentos
-  const filteredAgendamentos = agendamentos.filter(agendamento => {
+  const filteredAgendamentos = agendamentos.filter((agendamento) => {
     const doente = getDoentePorId(agendamento.doenteId);
     const ministro = getMinistroPorId(agendamento.ministroId);
-    
-    const matchesSearch = 
+
+    const matchesSearch =
       doente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ministro.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doente.setor.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = 
-      statusFilter === 'todos' || 
-      agendamento.status === statusFilter;
-    
-    const matchesMinistro = 
-      ministroFilter === 'todos' || 
-      agendamento.ministroId === ministroFilter;
-    
+
+    const matchesStatus =
+      statusFilter === "todos" || agendamento.status === statusFilter;
+
+    const matchesMinistro =
+      ministroFilter === "todos" || agendamento.ministroId === ministroFilter;
+
     return matchesSearch && matchesStatus && matchesMinistro;
   });
 
@@ -163,12 +182,14 @@ const AgendamentosPage = () => {
               Gerencie todos os agendamentos de visitas a doentes.
             </p>
           </div>
-          <Button asChild>
-            <Link to="/novo-agendamento">
-              <CalendarPlus className="mr-2 h-4 w-4" />
-              Novo Agendamento
-            </Link>
-          </Button>
+          {isAdmin && (
+            <Button asChild>
+              <Link to="/novo-agendamento">
+                <CalendarPlus className="mr-2 h-4 w-4" />
+                Novo Agendamento
+              </Link>
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -181,7 +202,7 @@ const AgendamentosPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           <div className="flex gap-2">
             <div className="flex items-center gap-2 flex-1">
               <Filter className="h-4 w-4 text-muted-foreground" />
@@ -197,16 +218,19 @@ const AgendamentosPage = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {isAdmin && (
               <div className="flex-1">
-                <Select value={ministroFilter} onValueChange={setMinistroFilter}>
+                <Select
+                  value={ministroFilter}
+                  onValueChange={setMinistroFilter}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Filtrar por ministro" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos os ministros</SelectItem>
-                    {ministros.map(ministro => (
+                    {ministros.map((ministro) => (
                       <SelectItem key={ministro.id} value={ministro.id}>
                         {ministro.nome}
                       </SelectItem>
@@ -224,20 +248,20 @@ const AgendamentosPage = () => {
             <TabsTrigger value="proximos">Próximos</TabsTrigger>
             <TabsTrigger value="passados">Passados</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="todos">
             {renderAgendamentosList(filteredAgendamentos)}
           </TabsContent>
-          
+
           <TabsContent value="proximos">
             {renderAgendamentosList(
-              filteredAgendamentos.filter(a => new Date(a.data) >= new Date())
+              filteredAgendamentos.filter((a) => new Date(a.data) >= new Date())
             )}
           </TabsContent>
-          
+
           <TabsContent value="passados">
             {renderAgendamentosList(
-              filteredAgendamentos.filter(a => new Date(a.data) < new Date())
+              filteredAgendamentos.filter((a) => new Date(a.data) < new Date())
             )}
           </TabsContent>
         </Tabs>
@@ -253,11 +277,13 @@ const AgendamentosPage = () => {
         </div>
       );
     }
-    
+
     if (agendamentosList.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-muted-foreground mb-4">Nenhum agendamento encontrado.</p>
+          <p className="text-muted-foreground mb-4">
+            Nenhum agendamento encontrado.
+          </p>
           <Button asChild>
             <Link to="/novo-agendamento">
               <CalendarPlus className="mr-2 h-4 w-4" />
@@ -267,7 +293,7 @@ const AgendamentosPage = () => {
         </div>
       );
     }
-    
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {agendamentosList.map((agendamento) => (

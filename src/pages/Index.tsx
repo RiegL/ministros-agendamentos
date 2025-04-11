@@ -13,11 +13,6 @@ const Index = () => {
   return (
     <Layout>
       <div className="flex flex-col items-center justify-center py-12">
-        <h1 className="text-4xl font-bold mb-2 text-center">Agenda Sagrada</h1>
-        <p className="text-xl text-muted-foreground mb-12 text-center max-w-2xl">
-          Sistema de agendamentos para ministros e doentes
-        </p>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
           <Card className="bg-primary/5 hover:bg-primary/10 transition-colors">
             <CardContent className="p-6">

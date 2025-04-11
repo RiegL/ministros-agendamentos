@@ -21,7 +21,7 @@ const Navbar = () => {
           <div className="flex-shrink-0">
             <Link to="/" className="text-xl font-bold flex items-center">
               <Calendar className="mr-2" />
-              Agenda Sagrada
+             Ministros da Eucaristia
             </Link>
           </div>
           <div className="hidden md:block">
@@ -44,13 +44,18 @@ const Navbar = () => {
                     <Calendar className="inline-block mr-2" size={18} />
                     Agendamentos
                   </Link>
+
+                  <Link to="/relatorios" className="hover:bg-primary-foreground/10 px-3 py-2 rounded-md">
+                    <Calendar className="inline-block mr-2" size={18} />
+                    Relatórios
+                  </Link>
                   
                   <div className="flex items-center ml-4 mr-4 text-sm">
                     <User className="mr-2" size={16} />
                     <span>Olá, {currentMinistro?.nome}</span>
                   </div>
                   
-                  <Button variant="outline" size="sm" onClick={handleLogout}>
+                  <Button variant="destructive" size="sm" onClick={handleLogout}>
                     <LogOut className="mr-2" size={16} />
                     Sair
                   </Button>

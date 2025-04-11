@@ -11,7 +11,7 @@ const Header = () => {
     <header className="bg-primary text-primary-foreground">
       <div className="container mx-auto flex justify-between items-center h-16 px-4">
         <div className="flex-shrink-0">
-          <h1 className="text-xl font-bold">Agenda Sagrada</h1>
+          <h1 className="text-xl font-bold">Capela São Pedro</h1>
         </div>
         {isMobile ? <MobileMenu /> : <Navbar />}
       </div>

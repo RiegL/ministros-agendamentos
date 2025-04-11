@@ -70,6 +70,15 @@ const MobileMenu = () => {
                   Agendamentos
                 </Link>
                 
+                <Link
+                  to="/relatorios"
+                  className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary-foreground/10"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Calendar className="inline-block mr-2" size={18} />
+                  Relatórios
+                </Link>
+
                 <Button variant="outline" className="w-full mt-4" onClick={handleLogout}>
                   <LogOut className="mr-2" size={16} />
                   Sair
