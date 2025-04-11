@@ -23,7 +23,7 @@ const MobileMenu = () => {
   return (
     <div className="md:hidden">
       <Button
-        variant="ghost"
+        variant="default"
         size="icon"
         className="text-primary-foreground"
         onClick={toggleMenu}

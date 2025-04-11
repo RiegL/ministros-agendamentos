@@ -82,7 +82,7 @@ const Index = () => {
         <div className="mt-12 space-y-4 text-center">
           <h2 className="text-2xl font-semibold">Acesso Rápido</h2>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button asChild size="lg">
+            <Button asChild size="lg" variant='outline'>
               <Link to="/cadastrar-doente">
                 <Users className="mr-2 h-4 w-4" />
                 Cadastrar Doente
@@ -97,7 +97,7 @@ const Index = () => {
                     Cadastrar Ministro
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="default">
+                <Button asChild size="lg" variant="outline">
                   <Link to="/novo-agendamento">
                     <Calendar className="mr-2 h-4 w-4" />
                     Agendar Visita

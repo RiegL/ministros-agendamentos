@@ -20,8 +20,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
             <Link to="/" className="text-xl font-bold flex items-center">
-              <Calendar className="mr-2" />
-             Ministros da Eucaristia
+            <h1 className="text-xl font-bold">Capela São Pedro</h1>
             </Link>
           </div>
           <div className="hidden md:block">
