@@ -60,7 +60,7 @@ const DoentesPage = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Doentes</h1>
           <Link to="/cadastrar-doente">
-            <Button>
+            <Button variant='default' size="sm">
               <Plus className="mr-2 h-4 w-4" /> Cadastrar Doente
             </Button>
           </Link>
