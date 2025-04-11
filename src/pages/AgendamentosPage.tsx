@@ -111,6 +111,8 @@ const AgendamentosPage = () => {
       nome: 'Ministro não encontrado',
       email: '',
       telefone: '',
+      role: 'user' as 'admin' | 'user',
+      senha: '',
       createdAt: new Date(),
     };
   };

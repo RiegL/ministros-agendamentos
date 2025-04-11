@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Phone, MapPin, FileText } from 'lucide-react';
+import { Calendar as CalendarIcon, Phone, MapPin, FileText } from 'lucide-react';
 import { Doente } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -16,6 +16,7 @@ import { addAgendamento } from '@/services/mock-data';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Calendar } from '@/components/ui/calendar';
 
 interface DoentesCardProps {
   doente: Doente;
@@ -109,7 +110,7 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
             onClick={handleAgendarVisita}
             variant="outline"
           >
-            <Calendar className="h-4 w-4 mr-2" />
+            <CalendarIcon className="h-4 w-4 mr-2" />
             Agendar Visita
           </Button>
         </CardFooter>
@@ -145,7 +146,7 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
                         !data && "text-muted-foreground"
                       )}
                     >
-                      <Calendar className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-2 h-4 w-4" />
                       {data ? format(data, "PPP", { locale: ptBR }) : "Selecione uma data"}
                     </Button>
                   </PopoverTrigger>
