@@ -9,12 +9,18 @@ export interface Ministro {
   createdAt: Date;
 }
 
+export interface TelefoneDoente {
+  numero: string;
+  descricao?: string;
+}
+
 export interface Doente {
   id: string;
   nome: string;
   endereco: string;
-  setor: string; // Added setor field
-  telefone: string;
+  setor: string;
+  telefone: string; // Keep for backward compatibility
+  telefones?: TelefoneDoente[]; // New field for multiple phones
   observacoes?: string;
   createdAt: Date;
   cadastradoPor: string; // ID do ministro
@@ -24,6 +30,7 @@ export interface Agendamento {
   id: string;
   doenteId: string;
   ministroId: string;
+  ministroSecundarioId?: string; // Adding support for a second minister
   data: Date;
   hora: string;
   status: 'agendado' | 'concluido' | 'cancelado';

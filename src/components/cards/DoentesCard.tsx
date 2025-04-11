@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Phone, MapPin, FileText, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Phone, MapPin, FileText, AlertCircle, Trash2 } from 'lucide-react';
 import { Doente } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -12,26 +12,39 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { addAgendamento, hasActiveScheduling } from '@/services/mock-data';
+import { addAgendamento, hasActiveScheduling, deleteDoente } from '@/services/mock-data';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DoentesCardProps {
   doente: Doente;
+  onDelete?: () => void;
 }
 
-const DoentesCard = ({ doente }: DoentesCardProps) => {
+const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [data, setData] = useState<Date | undefined>(undefined);
   const [hora, setHora] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasActiveVisit, setHasActiveVisit] = useState(false);
+  const [isDeletingDoente, setIsDeletingDoente] = useState(false);
   
-  const { currentMinistro } = useAuth();
+  const { currentMinistro, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -99,6 +112,50 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
       setIsSubmitting(false);
     }
   };
+
+  const handleDeleteDoente = async () => {
+    if (!isAdmin) return;
+    
+    setIsDeletingDoente(true);
+    
+    try {
+      await deleteDoente(doente.id);
+      
+      toast({
+        title: "Doente excluído",
+        description: "O doente foi excluído com sucesso."
+      });
+      
+      setIsDeleteDialogOpen(false);
+      if (onDelete) onDelete();
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir doente",
+        description: "Não foi possível excluir o doente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeletingDoente(false);
+    }
+  };
+
+  const renderPhoneInfo = () => {
+    if (!doente.telefones || doente.telefones.length === 0) {
+      return (
+        <div className="flex items-center">
+          <Phone className="h-4 w-4 mr-2" />
+          <p className="text-sm">{doente.telefone}</p>
+        </div>
+      );
+    }
+    
+    return doente.telefones.map((tel, index) => (
+      <div key={index} className="flex items-center">
+        <Phone className="h-4 w-4 mr-2" />
+        <p className="text-sm">{tel.numero} {tel.descricao && <span className="text-muted-foreground ml-1">({tel.descricao})</span>}</p>
+      </div>
+    ));
+  };
   
   return (
     <>
@@ -126,10 +183,9 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
               <MapPin className="h-4 w-4 mr-2 mt-1" />
               <p className="text-sm text-muted-foreground">Setor: {doente.setor}</p>
             </div>
-            <div className="flex items-center">
-              <Phone className="h-4 w-4 mr-2" />
-              <p className="text-sm">{doente.telefone}</p>
-            </div>
+            
+            {renderPhoneInfo()}
+            
             {doente.observacoes && (
               <div className="flex items-start mt-4">
                 <FileText className="h-4 w-4 mr-2 mt-1" />
@@ -138,7 +194,7 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
             )}
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col gap-2">
           <Button 
             className="w-full" 
             onClick={handleAgendarVisita}
@@ -157,6 +213,17 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
               </>
             )}
           </Button>
+          
+          {isAdmin && (
+            <Button 
+              className="w-full" 
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Excluir Doente
+            </Button>
+          )}
         </CardFooter>
       </Card>
       
@@ -184,6 +251,7 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
+                      id="data"
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
@@ -236,6 +304,27 @@ const DoentesCard = ({ doente }: DoentesCardProps) => {
           </form>
         </DialogContent>
       </Dialog>
+      
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Doente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir permanentemente este doente? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteDoente}
+              disabled={isDeletingDoente}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeletingDoente ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

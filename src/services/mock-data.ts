@@ -1,5 +1,5 @@
 
-import { Doente, Ministro, Agendamento } from '@/types';
+import { Doente, Ministro, Agendamento, TelefoneDoente } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
 // Mock data para ministros
@@ -41,6 +41,9 @@ const doentes: Doente[] = [
     endereco: 'Rua das Flores, 123 - Centro',
     setor: 'Centro',
     telefone: '(11) 98888-7777',
+    telefones: [
+      { numero: '(11) 98888-7777', descricao: 'Pessoal' }
+    ],
     observacoes: 'Prefere visitas no período da tarde.',
     createdAt: new Date('2023-03-15'),
     cadastradoPor: '1',
@@ -51,6 +54,10 @@ const doentes: Doente[] = [
     endereco: 'Av. Principal, 456 - Jardim Europa',
     setor: 'Jardim Europa',
     telefone: '(11) 97777-6666',
+    telefones: [
+      { numero: '(11) 97777-6666', descricao: 'Casa' },
+      { numero: '(11) 97777-5555', descricao: 'Filho' }
+    ],
     observacoes: 'Acamado, necessita de atenção especial.',
     createdAt: new Date('2023-04-20'),
     cadastradoPor: '2',
@@ -61,6 +68,9 @@ const doentes: Doente[] = [
     endereco: 'Rua dos Girassóis, 789 - Vila Nova',
     setor: 'Vila Nova',
     telefone: '(11) 96666-5555',
+    telefones: [
+      { numero: '(11) 96666-5555', descricao: '' }
+    ],
     createdAt: new Date('2023-05-10'),
     cadastradoPor: '1',
   },
@@ -81,6 +91,7 @@ const agendamentos: Agendamento[] = [
     id: '2',
     doenteId: '2',
     ministroId: '2',
+    ministroSecundarioId: '3', // Example with secondary minister
     data: new Date('2023-06-20'),
     hora: '10:00',
     status: 'agendado',
@@ -133,7 +144,9 @@ export const getAgendamentos = (): Promise<Agendamento[]> => {
 
 // Get agendamentos for a specific ministro
 export const getAgendamentosByMinistroId = (ministroId: string): Promise<Agendamento[]> => {
-  return Promise.resolve(agendamentos.filter(a => a.ministroId === ministroId));
+  return Promise.resolve(agendamentos.filter(a => 
+    a.ministroId === ministroId || a.ministroSecundarioId === ministroId
+  ));
 };
 
 export const addMinistro = (newMinistro: Omit<Ministro, 'id' | 'createdAt'>): Promise<Ministro> => {
@@ -158,6 +171,26 @@ export const addDoente = (newDoente: Omit<Doente, 'id' | 'createdAt'>): Promise<
   return Promise.resolve(doente);
 };
 
+export const deleteDoente = (id: string): Promise<void> => {
+  const index = doentes.findIndex(d => d.id === id);
+  
+  if (index === -1) {
+    return Promise.reject(new Error('Doente não encontrado'));
+  }
+  
+  // Also delete any agendamentos associated with this doente
+  const agendamentosToRemove = agendamentos.filter(a => a.doenteId === id);
+  agendamentosToRemove.forEach(a => {
+    const idx = agendamentos.findIndex(ag => ag.id === a.id);
+    if (idx !== -1) {
+      agendamentos.splice(idx, 1);
+    }
+  });
+  
+  doentes.splice(index, 1);
+  return Promise.resolve();
+};
+
 export const addAgendamento = (newAgendamento: Omit<Agendamento, 'id' | 'createdAt' | 'status'>): Promise<Agendamento> => {
   const agendamento: Agendamento = {
     ...newAgendamento,
@@ -178,5 +211,34 @@ export const updateAgendamentoStatus = (id: string, status: 'agendado' | 'conclu
   }
   
   agendamentos[index].status = status;
+  return Promise.resolve(agendamentos[index]);
+};
+
+// Add a secondary minister to an existing appointment
+export const addSecondaryMinister = (agendamentoId: string, ministroId: string): Promise<Agendamento> => {
+  const index = agendamentos.findIndex(a => a.id === agendamentoId);
+  
+  if (index === -1) {
+    return Promise.reject(new Error('Agendamento não encontrado'));
+  }
+  
+  // Check if trying to add the same minister who is already primary
+  if (agendamentos[index].ministroId === ministroId) {
+    return Promise.reject(new Error('O ministro já é o responsável principal por esta visita'));
+  }
+  
+  agendamentos[index].ministroSecundarioId = ministroId;
+  return Promise.resolve(agendamentos[index]);
+};
+
+// Remove secondary minister from an appointment
+export const removeSecondaryMinister = (agendamentoId: string): Promise<Agendamento> => {
+  const index = agendamentos.findIndex(a => a.id === agendamentoId);
+  
+  if (index === -1) {
+    return Promise.reject(new Error('Agendamento não encontrado'));
+  }
+  
+  agendamentos[index].ministroSecundarioId = undefined;
   return Promise.resolve(agendamentos[index]);
 };

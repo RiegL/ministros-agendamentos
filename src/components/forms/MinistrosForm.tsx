@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface MinistrosFormProps {
   onSubmit: (data: {
@@ -26,6 +27,7 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
   const [telefone, setTelefone] = useState('');
   const [senha, setSenha] = useState('');
   const [role, setRole] = useState<'admin' | 'user'>('user');
+  const [showPassword, setShowPassword] = useState(false);
   const { isAdmin } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -54,6 +56,10 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
     setTelefone('');
     setSenha('');
     setRole('user');
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -102,14 +108,29 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
           
           <div className="space-y-2">
             <Label htmlFor="senha">Senha*</Label>
-            <Input
-              id="senha"
-              type="password"
-              placeholder="••••••••"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <Input
+                id="senha"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3"
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
           </div>
           
           {isAdmin && (

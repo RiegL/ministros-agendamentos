@@ -60,6 +60,7 @@ const NovoAgendamentoPage = () => {
   const handleSubmit = async (data: {
     doenteId: string;
     ministroId: string;
+    ministroSecundarioId?: string;
     data: Date;
     hora: string;
     observacoes: string;

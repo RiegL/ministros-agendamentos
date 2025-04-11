@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { addDoente } from '@/services/mock-data';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { TelefoneDoente } from '@/types';
 
 const CadastrarDoentePage = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const CadastrarDoentePage = () => {
     endereco: string;
     setor: string;
     telefone: string;
+    telefones: TelefoneDoente[];
     observacoes: string;
   }) => {
     if (!currentMinistro) {

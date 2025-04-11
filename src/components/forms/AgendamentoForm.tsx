@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, UserPlus, UserMinus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -21,6 +21,7 @@ interface AgendamentoFormProps {
   onSubmit: (data: {
     doenteId: string;
     ministroId: string;
+    ministroSecundarioId?: string;
     data: Date;
     hora: string;
     observacoes: string;
@@ -32,6 +33,8 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
   const { toast } = useToast();
   const [doenteId, setDoenteId] = useState('');
   const [ministroId, setMinistroId] = useState('');
+  const [ministroSecundarioId, setMinistroSecundarioId] = useState<string | undefined>(undefined);
+  const [hasSecondaryMinister, setHasSecondaryMinister] = useState(false);
   const [data, setData] = useState<Date | undefined>(undefined);
   const [hora, setHora] = useState('');
   const [observacoes, setObservacoes] = useState('');
@@ -48,9 +51,20 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
       return;
     }
     
+    // Check if primary and secondary ministers are the same
+    if (hasSecondaryMinister && ministroSecundarioId === ministroId) {
+      toast({
+        title: "Ministros duplicados",
+        description: "O ministro secundário não pode ser o mesmo que o ministro principal.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     onSubmit({
       doenteId,
       ministroId,
+      ministroSecundarioId: hasSecondaryMinister ? ministroSecundarioId : undefined,
       data,
       hora,
       observacoes
@@ -59,10 +73,22 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
     // Reset form
     setDoenteId('');
     setMinistroId('');
+    setMinistroSecundarioId(undefined);
+    setHasSecondaryMinister(false);
     setData(undefined);
     setHora('');
     setObservacoes('');
   };
+
+  const toggleSecondaryMinister = () => {
+    setHasSecondaryMinister(!hasSecondaryMinister);
+    if (!hasSecondaryMinister) {
+      setMinistroSecundarioId(undefined);
+    }
+  };
+
+  // Filter ministers for secondary selection (can't select the same as primary)
+  const filteredMinistros = ministros.filter(m => m.id !== ministroId);
 
   return (
     <Card>
@@ -91,7 +117,7 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="ministro">Ministro*</Label>
+            <Label htmlFor="ministro">Ministro Principal*</Label>
             <Select value={ministroId} onValueChange={setMinistroId} required>
               <SelectTrigger id="ministro">
                 <SelectValue placeholder="Selecione o ministro" />
@@ -106,12 +132,59 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
             </Select>
           </div>
           
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={toggleSecondaryMinister}
+                className="mb-2"
+              >
+                {hasSecondaryMinister ? (
+                  <>
+                    <UserMinus className="mr-2 h-4 w-4" />
+                    Remover Ministro Secundário
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Adicionar Ministro Secundário
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {hasSecondaryMinister && (
+              <div className="space-y-2">
+                <Label htmlFor="ministroSecundario">Ministro Secundário</Label>
+                <Select 
+                  value={ministroSecundarioId} 
+                  onValueChange={setMinistroSecundarioId}
+                  disabled={!ministroId}
+                >
+                  <SelectTrigger id="ministroSecundario">
+                    <SelectValue placeholder="Selecione o ministro secundário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredMinistros.map((ministro) => (
+                      <SelectItem key={ministro.id} value={ministro.id}>
+                        {ministro.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="data">Data*</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
+                    id="data"
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
