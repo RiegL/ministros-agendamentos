@@ -5,18 +5,12 @@ import { getAgendamentos, getDoentes, getMinistros } from '@/services/mock-data'
 import { Agendamento, Doente, Ministro } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Filter, Search, UserCog, Users } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import ReportsFilters from '@/components/reports/ReportsFilters';
 
 const RelatoriosPage = () => {
   const { toast } = useToast();
@@ -30,9 +24,9 @@ const RelatoriosPage = () => {
   
   // Filter states
   const [nomeFiltro, setNomeFiltro] = useState('');
-  const [setorFiltro, setSetorFiltro] = useState('');
+  const [setorFiltro, setSetorFiltro] = useState('todos');
   const [dataFiltro, setDataFiltro] = useState<Date | undefined>(undefined);
-  const [ministroFiltro, setMinistroFiltro] = useState('');
+  const [ministroFiltro, setMinistroFiltro] = useState('todos');
   
   // Combined data
   const [relatorios, setRelatorios] = useState<any[]>([]);
@@ -99,7 +93,7 @@ const RelatoriosPage = () => {
     }
     
     // Filter by setor
-    if (setorFiltro && relatorio.doente.setor !== setorFiltro) {
+    if (setorFiltro && setorFiltro !== 'todos' && relatorio.doente.setor !== setorFiltro) {
       return false;
     }
     
@@ -116,7 +110,7 @@ const RelatoriosPage = () => {
     }
     
     // Filter by ministro
-    if (ministroFiltro && relatorio.ministroId !== ministroFiltro) {
+    if (ministroFiltro && ministroFiltro !== 'todos' && relatorio.ministroId !== ministroFiltro) {
       return false;
     }
     
@@ -129,9 +123,18 @@ const RelatoriosPage = () => {
   // Reset filters
   const resetFilters = () => {
     setNomeFiltro('');
-    setSetorFiltro('');
+    setSetorFiltro('todos');
     setDataFiltro(undefined);
-    setMinistroFiltro('');
+    setMinistroFiltro('todos');
+  };
+  
+  const handleFilter = () => {
+    // Esta função é chamada quando o botão de filtrar é clicado
+    // Como os filtros já são aplicados em tempo real, essa função não precisa fazer nada agora
+    toast({
+      title: "Filtros aplicados",
+      description: `${filteredRelatorios.length} agendamentos encontrados`,
+    });
   };
   
   if (isLoading) {
@@ -154,98 +157,19 @@ const RelatoriosPage = () => {
           <h1 className="text-3xl font-bold">Relatórios</h1>
         </div>
         
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Filtros</CardTitle>
-            <CardDescription>Filtre os relatórios por diferentes critérios</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="nomeFiltro">Nome do Doente</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="nomeFiltro"
-                    placeholder="Buscar por nome..."
-                    value={nomeFiltro}
-                    onChange={(e) => setNomeFiltro(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="setorFiltro">Setor</Label>
-                <Select value={setorFiltro} onValueChange={setSetorFiltro}>
-                  <SelectTrigger id="setorFiltro">
-                    <SelectValue placeholder="Selecione o setor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos os setores</SelectItem>
-                    {setores.map((setor) => (
-                      <SelectItem key={setor} value={setor}>
-                        {setor}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Data</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dataFiltro && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataFiltro ? format(dataFiltro, "PPP", { locale: ptBR }) : "Selecione uma data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={dataFiltro}
-                      onSelect={setDataFiltro}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              {isAdmin && (
-                <div className="space-y-2">
-                  <Label htmlFor="ministroFiltro">Ministro</Label>
-                  <Select value={ministroFiltro} onValueChange={setMinistroFiltro}>
-                    <SelectTrigger id="ministroFiltro">
-                      <SelectValue placeholder="Selecione o ministro" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos os ministros</SelectItem>
-                      {ministros.map((ministro) => (
-                        <SelectItem key={ministro.id} value={ministro.id}>
-                          {ministro.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
-              <Button onClick={resetFilters} variant="outline" className="mt-8">
-                <Filter className="mr-2 h-4 w-4" />
-                Limpar Filtros
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ReportsFilters 
+          searchTerm={nomeFiltro}
+          setSearchTerm={setNomeFiltro}
+          selectedDate={dataFiltro}
+          setSelectedDate={setDataFiltro}
+          selectedSetor={setorFiltro}
+          setSelectedSetor={setSetorFiltro}
+          setores={setores}
+          onFilter={handleFilter}
+          onReset={resetFilters}
+        />
         
-        <Card>
+        <Card className="mt-6">
           <CardHeader>
             <CardTitle>Agendamentos</CardTitle>
             <CardDescription>
