@@ -97,7 +97,7 @@ const Index = () => {
                     Cadastrar Ministro
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="default">
+                <Button asChild size="lg" variant="secondary">
                   <Link to="/novo-agendamento">
                     <Calendar className="mr-2 h-4 w-4" />
                     Agendar Visita

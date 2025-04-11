@@ -217,7 +217,7 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
           {isAdmin && (
             <Button 
               className="w-full" 
-              variant="destructive"
+              variant="outline"
               onClick={() => setIsDeleteDialogOpen(true)}
             >
               <Trash2 className="h-4 w-4 mr-2" />
