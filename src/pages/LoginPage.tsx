@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -45,7 +46,7 @@ const LoginPage = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-// alterado
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-100 p-4">
       <Card className="w-full max-w-md">
@@ -70,32 +71,40 @@ const LoginPage = () => {
               />
             </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="senha">Senha</Label>
-            <div className="relative">
-              <Input
-                id="senha"
-                type={showPassword ? "text" : "password"}
-                placeholder="senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                required
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3"
-                onClick={togglePasswordVisibility}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                )}
-              </Button>
+            <div className="space-y-2">
+              <Label htmlFor="senha">Senha</Label>
+              <div className="relative">
+                <Input
+                  id="senha"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="senha"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
             </div>
-          </div>
+            
+            <div className="text-sm text-muted-foreground mt-2">
+              <p>Usuários de exemplo:</p>
+              <ul className="list-disc pl-5 mt-1">
+                <li>Admin: joao.silva@example.com / senha: admin</li>
+                <li>Usuário: maria.oliveira@example.com / senha: user</li>
+              </ul>
+            </div>
           </CardContent>
           <CardFooter>
             <Button className="w-full" type="submit" disabled={isLoading}>
