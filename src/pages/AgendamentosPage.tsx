@@ -10,6 +10,7 @@ import {
   getDoentes,
   getMinistros,
   updateAgendamentoStatus,
+  updateAgendamento,
 } from "@/services/mock-data";
 import { Agendamento, Doente, Ministro } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -42,10 +43,8 @@ const AgendamentosPage = () => {
         const [agendamentosData, doentesData, ministrosData] =
           await Promise.all([getAgendamentos(), getDoentes(), getMinistros()]);
 
-        // Filter agendamentos based on user role
         let filteredAgendamentos = agendamentosData;
         if (!isAdmin && currentMinistro) {
-          // Regular users can only see their own agendamentos
           filteredAgendamentos = agendamentosData.filter(
             (a) => a.ministroId === currentMinistro.id
           );
@@ -58,7 +57,6 @@ const AgendamentosPage = () => {
         if (ministroIdParam) {
           setMinistroFilter(ministroIdParam);
         } else if (!isAdmin && currentMinistro) {
-          // Set filter to current ministro for regular users
           setMinistroFilter(currentMinistro.id);
         }
       } catch (error) {
@@ -125,6 +123,54 @@ const AgendamentosPage = () => {
     }
   };
 
+  const handleJuntarAgendamento = async (agendamentoId: string) => {
+    if (!currentMinistro) return;
+    
+    try {
+      const agendamento = agendamentos.find(a => a.id === agendamentoId);
+      
+      if (!agendamento) {
+        toast({
+          title: "Erro",
+          description: "Agendamento não encontrado.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (agendamento.ministroSecundarioId) {
+        toast({
+          title: "Erro",
+          description: "Este agendamento já possui um ministro secundário.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const updatedAgendamento = {
+        ...agendamento,
+        ministroSecundarioId: currentMinistro.id,
+      };
+      
+      await updateAgendamento(updatedAgendamento);
+      
+      setAgendamentos(
+        agendamentos.map(a => a.id === agendamentoId ? updatedAgendamento : a)
+      );
+      
+      toast({
+        title: "Sucesso",
+        description: "Você foi adicionado como ministro secundário neste agendamento.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao juntar-se ao agendamento",
+        description: "Não foi possível adicionar você como ministro secundário.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getDoentePorId = (id: string) => {
     return (
       doentes.find((d) => d.id === id) || {
@@ -153,7 +199,6 @@ const AgendamentosPage = () => {
     );
   };
 
-  // Filtragem dos agendamentos
   const filteredAgendamentos = agendamentos.filter((agendamento) => {
     const doente = getDoentePorId(agendamento.doenteId);
     const ministro = getMinistroPorId(agendamento.ministroId);
@@ -284,28 +329,38 @@ const AgendamentosPage = () => {
           <p className="text-muted-foreground mb-4">
             Nenhum agendamento encontrado.
           </p>
-          <Button asChild>
-            <Link to="/novo-agendamento">
-              <CalendarPlus className="mr-2 h-4 w-4" />
-              Novo Agendamento
-            </Link>
-          </Button>
+          {isAdmin && (
+            <Button asChild>
+              <Link to="/novo-agendamento">
+                <CalendarPlus className="mr-2 h-4 w-4" />
+                Novo Agendamento
+              </Link>
+            </Button>
+          )}
         </div>
       );
     }
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {agendamentosList.map((agendamento) => (
-          <AgendamentoCard
-            key={agendamento.id}
-            agendamento={agendamento}
-            doente={getDoentePorId(agendamento.doenteId)}
-            ministro={getMinistroPorId(agendamento.ministroId)}
-            onConcluir={handleConcluirAgendamento}
-            onCancelar={handleCancelarAgendamento}
-          />
-        ))}
+        {agendamentosList.map((agendamento) => {
+          const ministroSecundario = agendamento.ministroSecundarioId 
+            ? getMinistroPorId(agendamento.ministroSecundarioId) 
+            : null;
+            
+          return (
+            <AgendamentoCard
+              key={agendamento.id}
+              agendamento={agendamento}
+              doente={getDoentePorId(agendamento.doenteId)}
+              ministro={getMinistroPorId(agendamento.ministroId)}
+              ministroSecundario={ministroSecundario}
+              onConcluir={handleConcluirAgendamento}
+              onCancelar={handleCancelarAgendamento}
+              onJuntar={handleJuntarAgendamento}
+            />
+          );
+        })}
       </div>
     );
   }
