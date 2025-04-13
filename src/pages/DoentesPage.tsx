@@ -6,7 +6,7 @@ import { Doente } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import DoentesCard from '@/components/cards/DoentesCard';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Grid, List } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,6 +18,7 @@ const DoentesPage = () => {
   const [filteredDoentes, setFilteredDoentes] = useState<Doente[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   
   const fetchDoentes = async () => {
     try {
@@ -60,11 +61,31 @@ const DoentesPage = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Doentes</h1>
-          <Link to="/cadastrar-doente">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Cadastrar Doente
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <div className="border rounded-md flex mr-2">
+              <Button 
+                variant={viewMode === 'card' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setViewMode('card')}
+                className="rounded-r-none"
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant={viewMode === 'list' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setViewMode('list')}
+                className="rounded-l-none"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            <Link to="/cadastrar-doente">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Cadastrar Doente
+              </Button>
+            </Link>
+          </div>
         </div>
         
         <div className="mb-6">
@@ -91,23 +112,22 @@ const DoentesPage = () => {
           </div>
         ) : (
           <ScrollArea className="h-[calc(100vh-220px)]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
-              {filteredDoentes.map((doente) => (
-                <DoentesCard 
-                  key={doente.id} 
-                  doente={doente} 
-                  onDelete={handleDeleteDoente}
-                />
-              ))}
-            </div>
-            {/* <div >
-              {filteredDoentes.map((doente) => (
-                <DoentesList
-                  doentes={filteredDoentes}
-                  onDeleteDoente={handleDeleteDoente}
-                />
-              ))}
-            </div> */}
+            {viewMode === 'card' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
+                {filteredDoentes.map((doente) => (
+                  <DoentesCard 
+                    key={doente.id} 
+                    doente={doente} 
+                    onDelete={handleDeleteDoente}
+                  />
+                ))}
+              </div>
+            ) : (
+              <DoentesList
+                doentes={filteredDoentes}
+                onDeleteDoente={handleDeleteDoente}
+              />
+            )}
           </ScrollArea>
         )}
       </div>
