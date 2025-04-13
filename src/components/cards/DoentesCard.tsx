@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Phone, MapPin, FileText, AlertCircle, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Phone, MapPin, FileText, AlertCircle, Trash2, UserPlus } from 'lucide-react';
 import { Doente } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { addAgendamento, hasActiveScheduling, deleteDoente } from '@/services/mock-data';
+import { addAgendamento, hasActiveScheduling, getAgendamentos, deleteDoente } from '@/services/mock-data';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Agendamento } from '@/types';
 
 interface DoentesCardProps {
   doente: Doente;
@@ -43,18 +44,47 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasActiveVisit, setHasActiveVisit] = useState(false);
   const [isDeletingDoente, setIsDeletingDoente] = useState(false);
+  const [canJoinVisit, setCanJoinVisit] = useState(false);
+  const [existingAgendamento, setExistingAgendamento] = useState<Agendamento | null>(null);
   
   const { currentMinistro, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkActiveVisit = async () => {
-      const hasActive = await hasActiveScheduling(doente.id);
-      setHasActiveVisit(hasActive);
+      try {
+        // Verifica se há uma visita ativa
+        const hasActive = await hasActiveScheduling(doente.id);
+        setHasActiveVisit(hasActive);
+        
+        if (hasActive && currentMinistro) {
+          // Busca todos os agendamentos
+          const agendamentos = await getAgendamentos();
+          
+          // Filtra agendamentos ativos para este doente
+          const activeAgendamento = agendamentos.find(
+            a => a.doenteId === doente.id && 
+                 a.status === 'agendado'
+          );
+          
+          if (activeAgendamento) {
+            setExistingAgendamento(activeAgendamento);
+            
+            // Verifica se o ministro atual NÃO é o ministro principal E NÃO é o secundário
+            // E se não existe ministro secundário ainda
+            const canJoin = currentMinistro.id !== activeAgendamento.ministroId && 
+                           !activeAgendamento.ministroSecundarioId;
+            
+            setCanJoinVisit(canJoin);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao verificar agendamentos:", error);
+      }
     };
     
     checkActiveVisit();
-  }, [doente.id]);
+  }, [doente.id, currentMinistro]);
   
   const handleAgendarVisita = () => {
     setIsDialogOpen(true);
@@ -77,7 +107,7 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
     try {
       const activeVisit = await hasActiveScheduling(doente.id);
       
-      if (activeVisit) {
+      if (activeVisit && !canJoinVisit) {
         toast({
           title: "Agendamento não permitido",
           description: "Este doente já possui uma visita agendada que ainda não foi concluída.",
@@ -90,14 +120,17 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
       await addAgendamento({
         doenteId: doente.id,
         ministroId: currentMinistro.id,
-        data,
-        hora,
-        observacoes
+        data: canJoinVisit && existingAgendamento ? new Date(existingAgendamento.data) : data,
+        hora: canJoinVisit && existingAgendamento ? existingAgendamento.hora : hora,
+        observacoes,
+        asSecondary: canJoinVisit
       });
       
       toast({
-        title: "Agendamento realizado com sucesso",
-        description: "A visita foi agendada com sucesso."
+        title: canJoinVisit ? "Você se juntou à visita" : "Agendamento realizado com sucesso",
+        description: canJoinVisit ? 
+          "Você foi adicionado como ministro secundário." : 
+          "A visita foi agendada com sucesso."
       });
       
       setIsDialogOpen(false);
@@ -111,6 +144,15 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleJoinVisit = () => {
+    // Pré-preencher com os dados do agendamento existente
+    if (existingAgendamento) {
+      setData(new Date(existingAgendamento.data));
+      setHora(existingAgendamento.hora);
+    }
+    setIsDialogOpen(true);
   };
 
   const handleDeleteDoente = async () => {
@@ -195,24 +237,37 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
-          <Button 
-            className="w-full" 
-            onClick={handleAgendarVisita}
-            variant="outline"
-            disabled={hasActiveVisit}
-          >
-            {hasActiveVisit ? (
-              <>
+          {hasActiveVisit ? (
+            canJoinVisit ? (
+              <Button 
+                className="w-full" 
+                onClick={handleJoinVisit}
+                variant="outline"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Juntar-se à Visita
+              </Button>
+            ) : (
+              <Button 
+                className="w-full" 
+                onClick={handleAgendarVisita}
+                variant="outline"
+                disabled={true}
+              >
                 <AlertCircle className="h-4 w-4 mr-2" />
                 Já Possui Visita Agendada
-              </>
-            ) : (
-              <>
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                Agendar Visita
-              </>
-            )}
-          </Button>
+              </Button>
+            )
+          ) : (
+            <Button 
+              className="w-full" 
+              onClick={handleAgendarVisita}
+              variant="outline"
+            >
+              <CalendarIcon className="h-4 w-4 mr-2" />
+              Agendar Visita
+            </Button>
+          )}
           
           {isAdmin && (
             <Button 
@@ -231,9 +286,11 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
         <DialogContent className="sm:max-w-[425px]">
           <form onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle>Agendar Visita</DialogTitle>
+              <DialogTitle>
+                {canJoinVisit ? "Juntar-se à Visita" : "Agendar Visita"}
+              </DialogTitle>
               <DialogDescription>
-                Agendar visita para {doente.nome}
+                {canJoinVisit ? `Juntar-se à visita para ${doente.nome}` : `Agendar visita para ${doente.nome}`}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -246,44 +303,65 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
                 />
               </div>
               
-              <div className="grid gap-2">
-                <Label htmlFor="data">Data</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="data"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !data && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {data ? format(data, "PPP", { locale: ptBR }) : "Selecione uma data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={data}
-                      onSelect={setData}
-                      initialFocus
-                      locale={ptBR}
+              {canJoinVisit && existingAgendamento ? (
+                <>
+                  <div className="grid gap-2">
+                    <Label>Data da Visita (Pré-agendada)</Label>
+                    <Input 
+                      value={format(new Date(existingAgendamento.data), "PPP", { locale: ptBR })}
+                      disabled
                     />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="hora">Hora</Label>
-                <Input
-                  id="hora"
-                  type="time"
-                  value={hora}
-                  onChange={(e) => setHora(e.target.value)}
-                  required
-                />
-              </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Hora da Visita (Pré-agendada)</Label>
+                    <Input
+                      value={existingAgendamento.hora}
+                      disabled
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid gap-2">
+                    <Label htmlFor="data">Data</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="data"
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !data && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {data ? format(data, "PPP", { locale: ptBR }) : "Selecione uma data"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={data}
+                          onSelect={setData}
+                          initialFocus
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="hora">Hora</Label>
+                    <Input
+                      id="hora"
+                      type="time"
+                      value={hora}
+                      onChange={(e) => setHora(e.target.value)}
+                      required
+                    />
+                  </div>
+                </>
+              )}
               
               <div className="grid gap-2">
                 <Label htmlFor="observacoes">Observações</Label>
@@ -298,7 +376,7 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
             </div>
             <DialogFooter>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Agendando..." : "Confirmar Agendamento"}
+                {isSubmitting ? "Processando..." : canJoinVisit ? "Confirmar Participação" : "Confirmar Agendamento"}
               </Button>
             </DialogFooter>
           </form>
