@@ -29,6 +29,24 @@ let ministros: Ministro[] = [
     senha: "user",
     createdAt: new Date(),
   },
+  {
+    id: "4",
+    nome: "Ana Rodrigues",
+    email: "ana.rodrigues@example.com",
+    telefone: "333444555",
+    role: "user",
+    senha: "user",
+    createdAt: new Date(),
+  },
+  {
+    id: "5",
+    nome: "Pedro Santos",
+    email: "pedro.santos@example.com",
+    telefone: "666777888",
+    role: "user",
+    senha: "user",
+    createdAt: new Date(),
+  }
 ];
 
 let doentes: Doente[] = [
@@ -40,7 +58,11 @@ let doentes: Doente[] = [
     telefone: "111222333",
     createdAt: new Date(),
     cadastradoPor: "1",
-    telefones: [{ numero: "111222333", descricao: "Principal" }],
+    observacoes: "Paciente com histórico de hipertensão",
+    telefones: [
+      { numero: "111222333", descricao: "Principal" },
+      { numero: "444555666", descricao: "Recado com esposo" }
+    ]
   },
   {
     id: "102",
@@ -50,10 +72,12 @@ let doentes: Doente[] = [
     telefone: "444555666",
     createdAt: new Date(),
     cadastradoPor: "1",
+    observacoes: "Necessita de acompanhamento psicológico",
     telefones: [
       { numero: "444555666", descricao: "Principal" },
       { numero: "777888999", descricao: "Emergência" },
-    ],
+      { numero: "123456789", descricao: "Trabalho" }
+    ]
   },
   {
     id: "103",
@@ -63,8 +87,39 @@ let doentes: Doente[] = [
     telefone: "999000111",
     createdAt: new Date(),
     cadastradoPor: "2",
-    telefones: [{ numero: "999000111", descricao: "Principal" }],
+    observacoes: "Em tratamento quimioterápico",
+    telefones: [
+      { numero: "999000111", descricao: "Principal" },
+      { numero: "555666777", descricao: "Familiar" }
+    ]
   },
+  {
+    id: "104",
+    nome: "Roberto Oliveira",
+    endereco: "Rua D, 101",
+    setor: "Psicologia",
+    telefone: "222333444",
+    createdAt: new Date(),
+    cadastradoPor: "3",
+    observacoes: "Acompanhamento psicológico regular",
+    telefones: [
+      { numero: "222333444", descricao: "Principal" }
+    ]
+  },
+  {
+    id: "105",
+    nome: "Fernanda Lima",
+    endereco: "Rua E, 202",
+    setor: "Fisioterapia",
+    telefone: "666777888",
+    createdAt: new Date(),
+    cadastradoPor: "4",
+    observacoes: "Recuperação de cirurgia ortopédica",
+    telefones: [
+      { numero: "666777888", descricao: "Principal" },
+      { numero: "111222333", descricao: "Recado com familiar" }
+    ]
+  }
 ];
 
 let agendamentos: Agendamento[] = [
@@ -72,9 +127,11 @@ let agendamentos: Agendamento[] = [
     id: "201",
     doenteId: "101",
     ministroId: "2",
+    ministroSecundarioId: "1",
     data: new Date(),
     hora: "10:00",
     status: "agendado",
+    observacoes: "Acompanhamento cardíaco",
     createdAt: new Date(),
   },
   {
@@ -84,17 +141,41 @@ let agendamentos: Agendamento[] = [
     data: new Date(),
     hora: "14:00",
     status: "concluido",
+    observacoes: "Consulta neurológica concluída",
     createdAt: new Date(),
   },
   {
     id: "203",
     doenteId: "103",
     ministroId: "2",
+    ministroSecundarioId: "3",
     data: new Date(),
     hora: "16:00",
-    status: "cancelado",
+    status: "agendado",
+    observacoes: "Acompanhamento oncológico",
     createdAt: new Date(),
   },
+  {
+    id: "204",
+    doenteId: "104",
+    ministroId: "4",
+    data: new Date(),
+    hora: "11:00",
+    status: "agendado",
+    observacoes: "Sessão de psicologia",
+    createdAt: new Date(),
+  },
+  {
+    id: "205",
+    doenteId: "105",
+    ministroId: "5",
+    ministroSecundarioId: "4",
+    data: new Date(),
+    hora: "15:30",
+    status: "agendado",
+    observacoes: "Fisioterapia e acompanhamento",
+    createdAt: new Date(),
+  }
 ];
 
 // LocalStorage Mock
