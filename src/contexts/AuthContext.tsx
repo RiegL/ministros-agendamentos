@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Ministro, AuthContextType } from '@/types';
-import { getMinistros } from '@/services/mock-data';
+import { getMinistros } from '@/services/supabase-data';
 import { toast } from '@/hooks/use-toast';
 
 // Initial auth context state

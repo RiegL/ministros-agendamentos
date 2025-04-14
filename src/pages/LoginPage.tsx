@@ -97,14 +97,6 @@ const LoginPage = () => {
                 </Button>
               </div>
             </div>
-            
-            <div className="text-sm text-muted-foreground mt-2">
-              <p>Usuários de exemplo:</p>
-              <ul className="list-disc pl-5 mt-1">
-                <li>Admin: joao.silva@example.com / senha: admin</li>
-                <li>Usuário: maria.oliveira@example.com / senha: user</li>
-              </ul>
-            </div>
           </CardContent>
           <CardFooter>
             <Button className="w-full" type="submit" disabled={isLoading}>
