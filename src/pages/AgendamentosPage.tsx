@@ -46,7 +46,7 @@ const AgendamentosPage = () => {
         let filteredAgendamentos = agendamentosData;
         if (!isAdmin && currentMinistro) {
           filteredAgendamentos = agendamentosData.filter(
-            (a) => a.ministroId === currentMinistro.id
+            (a) => a.ministroId === currentMinistro.id || a.ministroSecundarioId === currentMinistro.id
           );
         }
 
@@ -211,8 +211,12 @@ const AgendamentosPage = () => {
     const matchesStatus =
       statusFilter === "todos" || agendamento.status === statusFilter;
 
-    const matchesMinistro =
-      ministroFilter === "todos" || agendamento.ministroId === ministroFilter;
+    let matchesMinistro = true;
+    if (ministroFilter !== "todos") {
+      matchesMinistro = 
+        agendamento.ministroId === ministroFilter || 
+        agendamento.ministroSecundarioId === ministroFilter;
+    }
 
     return matchesSearch && matchesStatus && matchesMinistro;
   });
