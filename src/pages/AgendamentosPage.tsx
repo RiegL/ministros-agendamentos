@@ -1,10 +1,7 @@
+
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
-import AgendamentoCard from "@/components/cards/AgendamentoCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CalendarPlus, Search, Filter } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   getAgendamentos,
   getDoentes,
@@ -14,15 +11,10 @@ import {
 } from "@/services/mock-data";
 import { Agendamento, Doente, Ministro } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import AgendamentosHeader from "@/components/agendamentos/AgendamentosHeader";
+import AgendamentosFilters from "@/components/agendamentos/AgendamentosFilters";
+import AgendamentosTabs from "@/components/agendamentos/AgendamentosTabs";
 
 const AgendamentosPage = () => {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
@@ -224,150 +216,32 @@ const AgendamentosPage = () => {
   return (
     <Layout>
       <div className="flex flex-col space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Agendamentos</h1>
-            <p className="text-muted-foreground">
-              Gerencie todos os agendamentos de visitas a doentes.
-            </p>
-          </div>
-          {isAdmin && (
-            <Button asChild>
-              <Link to="/novo-agendamento">
-                <CalendarPlus className="mr-2 h-4 w-4" />
-                Novo Agendamento
-              </Link>
-            </Button>
-          )}
-        </div>
+        <AgendamentosHeader isAdmin={isAdmin} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar agendamentos..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+        <AgendamentosFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          ministroFilter={ministroFilter}
+          setMinistroFilter={setMinistroFilter}
+          ministros={ministros}
+          isAdmin={isAdmin}
+        />
 
-          <div className="flex gap-2">
-            <div className="flex items-center gap-2 flex-1">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Filtrar por status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os status</SelectItem>
-                  <SelectItem value="agendado">Agendados</SelectItem>
-                  <SelectItem value="concluido">Concluídos</SelectItem>
-                  <SelectItem value="cancelado">Cancelados</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {isAdmin && (
-              <div className="flex-1">
-                <Select
-                  value={ministroFilter}
-                  onValueChange={setMinistroFilter}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filtrar por ministro" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos os ministros</SelectItem>
-                    {ministros.map((ministro) => (
-                      <SelectItem key={ministro.id} value={ministro.id}>
-                        {ministro.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <Tabs defaultValue="todos" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full max-w-md mb-4">
-            <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="proximos">Próximos</TabsTrigger>
-            <TabsTrigger value="passados">Passados</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="todos">
-            {renderAgendamentosList(filteredAgendamentos)}
-          </TabsContent>
-
-          <TabsContent value="proximos">
-            {renderAgendamentosList(
-              filteredAgendamentos.filter((a) => new Date(a.data) >= new Date())
-            )}
-          </TabsContent>
-
-          <TabsContent value="passados">
-            {renderAgendamentosList(
-              filteredAgendamentos.filter((a) => new Date(a.data) < new Date())
-            )}
-          </TabsContent>
-        </Tabs>
+        <AgendamentosTabs
+          filteredAgendamentos={filteredAgendamentos}
+          doentes={doentes}
+          ministros={ministros}
+          isLoading={isLoading}
+          isAdmin={isAdmin}
+          onConcluir={handleConcluirAgendamento}
+          onCancelar={handleCancelarAgendamento}
+          onJuntar={handleJuntarAgendamento}
+        />
       </div>
     </Layout>
   );
-
-  function renderAgendamentosList(agendamentosList: Agendamento[]) {
-    if (isLoading) {
-      return (
-        <div className="flex justify-center items-center py-12">
-          <p>Carregando...</p>
-        </div>
-      );
-    }
-
-    if (agendamentosList.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-muted-foreground mb-4">
-            Nenhum agendamento encontrado.
-          </p>
-          {isAdmin && (
-            <Button asChild>
-              <Link to="/novo-agendamento">
-                <CalendarPlus className="mr-2 h-4 w-4" />
-                Novo Agendamento
-              </Link>
-            </Button>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {agendamentosList.map((agendamento) => {
-          const ministroSecundario = agendamento.ministroSecundarioId 
-            ? getMinistroPorId(agendamento.ministroSecundarioId) 
-            : null;
-            
-          return (
-            <AgendamentoCard
-              key={agendamento.id}
-              agendamento={agendamento}
-              doente={getDoentePorId(agendamento.doenteId)}
-              ministro={getMinistroPorId(agendamento.ministroId)}
-              ministroSecundario={ministroSecundario}
-              onConcluir={handleConcluirAgendamento}
-              onCancelar={handleCancelarAgendamento}
-              onJuntar={handleJuntarAgendamento}
-            />
-          );
-        })}
-      </div>
-    );
-  }
 };
 
 export default AgendamentosPage;
