@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { useSearchParams } from "react-router-dom";
@@ -8,7 +7,7 @@ import {
   getMinistros,
   updateAgendamentoStatus,
   updateAgendamento,
-} from "@/services/mock-data";
+} from "@/services/supabase-data";
 import { Agendamento, Doente, Ministro } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,6 +31,7 @@ const AgendamentosPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const [agendamentosData, doentesData, ministrosData] =
           await Promise.all([getAgendamentos(), getDoentes(), getMinistros()]);
 
@@ -52,6 +52,7 @@ const AgendamentosPage = () => {
           setMinistroFilter(currentMinistro.id);
         }
       } catch (error) {
+        console.error("Erro ao carregar dados:", error);
         toast({
           title: "Erro ao carregar dados",
           description: "Não foi possível carregar os agendamentos.",
@@ -82,6 +83,7 @@ const AgendamentosPage = () => {
         description: "O agendamento foi marcado como concluído com sucesso.",
       });
     } catch (error) {
+      console.error("Erro ao concluir agendamento:", error);
       toast({
         title: "Erro ao concluir agendamento",
         description: "Não foi possível concluir o agendamento.",
@@ -107,6 +109,7 @@ const AgendamentosPage = () => {
         description: "O agendamento foi cancelado com sucesso.",
       });
     } catch (error) {
+      console.error("Erro ao cancelar agendamento:", error);
       toast({
         title: "Erro ao cancelar agendamento",
         description: "Não foi possível cancelar o agendamento.",
@@ -155,6 +158,7 @@ const AgendamentosPage = () => {
         description: "Você foi adicionado como ministro secundário neste agendamento.",
       });
     } catch (error) {
+      console.error("Erro ao juntar-se ao agendamento:", error);
       toast({
         title: "Erro ao juntar-se ao agendamento",
         description: "Não foi possível adicionar você como ministro secundário.",
