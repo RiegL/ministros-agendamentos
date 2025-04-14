@@ -12,6 +12,7 @@ const CadastrarDoentePage = () => {
   const navigate = useNavigate();
   const { currentMinistro } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { toast } = useToast();
   
   const handleSubmit = async (data: {
     nome: string;

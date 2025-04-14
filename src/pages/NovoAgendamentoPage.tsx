@@ -13,6 +13,7 @@ const NovoAgendamentoPage = () => {
   const [searchParams] = useSearchParams();
   const doenteIdParam = searchParams.get('doenteId');
   const { isAdmin, currentMinistro } = useAuth();
+  const { toast } = useToast();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [doentes, setDoentes] = useState<Doente[]>([]);
@@ -55,7 +56,7 @@ const NovoAgendamentoPage = () => {
     };
 
     fetchData();
-  }, [isAdmin, navigate]);
+  }, [isAdmin, navigate, toast]);
   
   const handleSubmit = async (data: {
     doenteId: string;

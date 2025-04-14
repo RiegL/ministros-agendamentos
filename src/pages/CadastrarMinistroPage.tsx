@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 const CadastrarMinistroPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { toast } = useToast();
   
   const handleSubmit = async (data: {
     nome: string;
