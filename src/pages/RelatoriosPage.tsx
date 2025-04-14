@@ -1,10 +1,11 @@
+
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import {
   getAgendamentos,
   getDoentes,
   getMinistros,
-} from "@/services/mock-data";
+} from "@/services/supabase-data";
 import { Agendamento, Doente, Ministro } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -265,53 +266,3 @@ const RelatoriosPage = () => {
 };
 
 export default RelatoriosPage;
-
-{
-  /* <CardContent>
-            {filteredRelatorios.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Nenhum agendamento encontrado com os filtros aplicados.</p>
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Hora</TableHead>
-                      <TableHead>Doente</TableHead>
-                      <TableHead>Setor</TableHead>
-                      <TableHead>Ministro</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRelatorios.map((relatorio) => (
-                      <TableRow key={relatorio.id}>
-                        <TableCell>
-                          {format(new Date(relatorio.data), "dd/MM/yyyy")}
-                        </TableCell>
-                        <TableCell>{relatorio.hora}</TableCell>
-                        <TableCell>{relatorio.doente.nome}</TableCell>
-                        <TableCell>{relatorio.doente.setor}</TableCell>
-                        <TableCell>{relatorio.ministro.nome}</TableCell>
-                        <TableCell>
-                          <span className={cn(
-                            "px-2 py-1 rounded-full text-xs font-medium",
-                            relatorio.status === 'agendado' && "bg-blue-100 text-blue-800",
-                            relatorio.status === 'concluido' && "bg-green-100 text-green-800",
-                            relatorio.status === 'cancelado' && "bg-red-100 text-red-800"
-                          )}>
-                            {relatorio.status === 'agendado' && "Agendado"}
-                            {relatorio.status === 'concluido' && "Concluído"}
-                            {relatorio.status === 'cancelado' && "Cancelado"}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent> */
-}

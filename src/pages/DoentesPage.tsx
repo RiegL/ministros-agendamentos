@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import { getDoentes } from '@/services/mock-data';
+import { getDoentes, deleteDoente } from '@/services/supabase-data';
 import { Doente } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import DoentesCard from '@/components/cards/DoentesCard';

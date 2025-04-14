@@ -3,8 +3,8 @@ import React from 'react';
 import Layout from '@/components/Layout';
 import DoentesForm from '@/components/forms/DoentesForm';
 import { useNavigate } from 'react-router-dom';
-import { addDoente } from '@/services/mock-data';
-import { toast } from '@/hooks/use-toast';
+import { addDoente } from '@/services/supabase-data';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { TelefoneDoente } from '@/types';
 

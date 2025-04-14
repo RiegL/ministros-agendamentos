@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import AgendamentoForm from '@/components/forms/AgendamentoForm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { addAgendamento, getDoentes, getMinistros, getAgendamentos } from '@/services/mock-data';
-import { toast } from '@/hooks/use-toast';
+import { addAgendamento, getDoentes, getMinistros, getAgendamentos } from '@/services/supabase-data';
+import { useToast } from '@/hooks/use-toast';
 import { Doente, Ministro, Agendamento } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 

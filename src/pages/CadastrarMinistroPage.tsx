@@ -3,8 +3,8 @@ import React from 'react';
 import Layout from '@/components/Layout';
 import MinistrosForm from '@/components/forms/MinistrosForm';
 import { useNavigate } from 'react-router-dom';
-import { addMinistro } from '@/services/mock-data';
-import { toast } from '@/hooks/use-toast';
+import { addMinistro } from '@/services/supabase-data';
+import { useToast } from '@/hooks/use-toast';
 
 const CadastrarMinistroPage = () => {
   const navigate = useNavigate();
