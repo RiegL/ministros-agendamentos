@@ -48,3 +48,12 @@ export const addMinistro = async (ministro: Omit<Ministro, 'id' | 'createdAt'>):
     createdAt: new Date(data.created_at)
   };
 };
+
+export const deleteMinistro = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('ministros')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
