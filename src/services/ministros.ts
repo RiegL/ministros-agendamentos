@@ -49,7 +49,25 @@ export const addMinistro = async (ministro: Omit<Ministro, 'id' | 'createdAt'>):
   };
 };
 
+export const hasAgendamentosAssociados = async (ministroId: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('agendamentos')
+    .select('id')
+    .or(`ministro_id.eq.${ministroId},ministro_secundario_id.eq.${ministroId}`)
+    .limit(1);
+  
+  if (error) throw error;
+  
+  return data.length > 0;
+};
+
 export const deleteMinistro = async (id: string): Promise<void> => {
+  const temAgendamentos = await hasAgendamentosAssociados(id);
+  
+  if (temAgendamentos) {
+    throw new Error("Não é possível excluir este ministro porque existem agendamentos associados a ele.");
+  }
+  
   const { error } = await supabase
     .from('ministros')
     .delete()

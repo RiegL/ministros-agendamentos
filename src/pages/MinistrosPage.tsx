@@ -17,27 +17,33 @@ const MinistrosPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchMinistros = async () => {
-      try {
-        const data = await getMinistros();
-        setMinistros(data);
-      } catch (error) {
-        toast({
-          title: "Erro ao carregar ministros",
-          description: "Não foi possível carregar a lista de ministros.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchMinistros = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getMinistros();
+      setMinistros(data);
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar ministros",
+        description: "Não foi possível carregar a lista de ministros.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchMinistros();
   }, [toast]);
 
   const handleVerAgendamentos = (ministroId: string) => {
     navigate(`/agendamentos?ministroId=${ministroId}`);
+  };
+
+  const handleMinistroDeleted = () => {
+    // Recarregar a lista de ministros após a exclusão
+    fetchMinistros();
   };
 
   const filteredMinistros = ministros.filter(ministro =>
@@ -94,6 +100,7 @@ const MinistrosPage = () => {
                 key={ministro.id}
                 ministro={ministro}
                 onVerAgendamentos={handleVerAgendamentos}
+                onDelete={handleMinistroDeleted}
               />
             ))}
           </div>
