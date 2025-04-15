@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { useSearchParams } from "react-router-dom";
-import {
-  getAgendamentos,
-  getDoentes,
-  getMinistros,
-  updateAgendamentoStatus,
-  updateAgendamento,
-} from "@/services/supabase-data";
+import {updateAgendamento, updateAgendamentoStatus,getAgendamentos  } from '@/services/agendamentos';
+import { getDoentes  } from '@/services/doentes';
+import { getMinistros } from '@/services/ministros';
 import { Agendamento, Doente, Ministro } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";

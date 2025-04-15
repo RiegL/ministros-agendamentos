@@ -1,6 +1,7 @@
 
 export interface Ministro {
   id: string;
+  id_auth: string;
   nome: string;
   email: string;
   telefone: string;

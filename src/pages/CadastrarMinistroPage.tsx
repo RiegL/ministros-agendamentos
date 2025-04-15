@@ -3,7 +3,7 @@ import React from 'react';
 import Layout from '@/components/Layout';
 import MinistrosForm from '@/components/forms/MinistrosForm';
 import { useNavigate } from 'react-router-dom';
-import { addMinistro } from '@/services/supabase-data';
+import { addMinistro } from '@/services/ministros';
 import { useToast } from '@/hooks/use-toast';
 
 const CadastrarMinistroPage = () => {
@@ -21,7 +21,12 @@ const CadastrarMinistroPage = () => {
     setIsSubmitting(true);
     
     try {
-      await addMinistro(data);
+      const ministroData = {
+        ...data,
+        id_auth: generateIdAuth(), 
+      };
+
+      await addMinistro(ministroData);
       
       toast({
         title: "Ministro cadastrado com sucesso",
@@ -38,6 +43,10 @@ const CadastrarMinistroPage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const generateIdAuth = () => {
+    return Math.random().toString(36).substring(2, 15); // Example implementation
   };
   
   return (

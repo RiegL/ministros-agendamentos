@@ -3,7 +3,7 @@ import React from 'react';
 import Layout from '@/components/Layout';
 import DoentesForm from '@/components/forms/DoentesForm';
 import { useNavigate } from 'react-router-dom';
-import { addDoente } from '@/services/supabase-data';
+import { addDoente } from  '@/services/doentes';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { TelefoneDoente } from '@/types';

@@ -1,8 +1,7 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Ministro, AuthContextType } from '@/types';
-import { getMinistros } from '@/services/supabase-data';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 // Initial auth context state
 const initialAuthContext: AuthContextType = {
@@ -42,45 +41,76 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Login function
   const login = async (email: string, senha: string): Promise<boolean> => {
     try {
-      const ministros = await getMinistros();
-      const ministro = ministros.find(m => 
-        m.email.toLowerCase() === email.toLowerCase() && 
-        m.senha === senha
-      );
-
-      if (ministro) {
-        setCurrentMinistro(ministro);
-        setIsAuthenticated(true);
-        setIsAdmin(ministro.role === 'admin');
-        localStorage.setItem('currentMinistro', JSON.stringify(ministro));
-        
-        toast({
-          title: "Login bem-sucedido",
-          description: `Bem-vindo, ${ministro.nome}!`,
-        });
-        
-        return true;
-      } else {
+      // 1. Tentar autenticar com Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha,
+      });
+  
+      if (error || !data?.user) {
         toast({
           title: "Falha no login",
-          description: "Email ou senha incorretos.",
-          variant: "destructive"
+          description: error?.message || "Usuário não encontrado.",
+          variant: "destructive",
         });
         return false;
       }
+  
+      const user = data.user;
+  
+      // 2. Buscar o ministro correspondente na tabela "ministros"
+      const { data: ministroData, error: ministroError } = await supabase
+        .from("ministros")
+        .select("*")
+        .eq("id_auth", user.id)
+        .single();
+  
+      if (ministroError || !ministroData) {
+        toast({
+          title: "Erro",
+          description: "Ministro não encontrado.",
+          variant: "destructive",
+        });
+        return false;
+      }
+  
+      // 3. Mapear os dados para o formato da interface Ministro
+      const mappedMinistro: Ministro = {
+        id: ministroData.id,
+        nome: ministroData.nome,
+        email: ministroData.email,
+        telefone: ministroData.telefone,
+        role: ministroData.role as 'admin' | 'user',
+        senha: ministroData.senha,
+        createdAt: new Date(ministroData.created_at),
+        id_auth: ''
+      };
+  
+      // 4. Salvar o ministro no estado e no localStorage
+      setCurrentMinistro(mappedMinistro);
+      setIsAuthenticated(true);
+      setIsAdmin(mappedMinistro.role === "admin");
+      localStorage.setItem("currentMinistro", JSON.stringify(mappedMinistro));
+  
+      toast({
+        title: "Login bem-sucedido",
+        description: `Bem-vindo, ${mappedMinistro.nome}!`,
+      });
+  
+      return true;
     } catch (error) {
       console.error("Login error:", error);
       toast({
         title: "Erro de login",
         description: "Ocorreu um erro ao fazer login. Tente novamente.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return false;
     }
   };
+  
 
   // Logout function
   const logout = () => {
@@ -93,6 +123,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       title: "Logout realizado",
       description: "Você saiu da sua conta.",
     });
+
+    supabase.auth.signOut(); // Logout no Supabase
   };
 
   // Auth context value
@@ -101,7 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAdmin,
     isAuthenticated,
     login,
-    logout
+    logout,
   };
 
   return (

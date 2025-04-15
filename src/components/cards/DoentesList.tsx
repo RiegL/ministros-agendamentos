@@ -10,7 +10,9 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { addAgendamento, hasActiveScheduling, deleteDoente, getAgendamentos } from '@/services/mock-data';
+
+import {  deleteDoente, hasActiveScheduling } from '@/services/doentes';
+import { getAgendamentos, addAgendamento } from '@/services/agendamentos';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from "lucide-react";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -22,6 +21,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { login, isAuthenticated } = useAuth();
+  const [lembrar, setLembrar] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
     if (isAuthenticated) {
@@ -34,6 +34,12 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
+      if (lembrar) {
+        localStorage.setItem("lembrarEmail", email);
+      } else {
+        localStorage.removeItem("lembrarEmail");
+      }
+
       const success = await login(email, senha);
       if (success) {
         navigate("/");
@@ -46,6 +52,18 @@ const LoginPage = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("lembrarEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setLembrar(true);
+    }
+
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-100 p-4">
@@ -70,7 +88,7 @@ const LoginPage = () => {
                 required
               />
             </div>
-          
+
             <div className="space-y-2">
               <Label htmlFor="senha">Senha</Label>
               <div className="relative">
@@ -98,6 +116,16 @@ const LoginPage = () => {
               </div>
             </div>
           </CardContent>
+          <div className="flex items-center space-x-2 mb-4 px-7">
+            <input
+              type="checkbox"
+              id="lembrar"
+              checked={lembrar}
+              onChange={(e) => setLembrar(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <Label htmlFor="lembrar">Lembrar de mim</Label>
+          </div>
           <CardFooter>
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? "Entrando..." : "Entrar"}

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MinistrosFormProps {
   onSubmit: (data: {
@@ -30,9 +31,9 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const { isAdmin } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+  
     if (!nome || !email || !telefone || !senha) {
       toast({
         title: "Dados incompletos",
@@ -41,22 +42,56 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
       });
       return;
     }
-    
-    onSubmit({
-      nome,
+  
+    // 1. Criar usuário no auth
+    const { data, error } = await supabase.auth.signUp({
       email,
-      telefone,
-      senha,
-      role
+      password: senha,
     });
-    
-    // Reset form
+  
+    if (error || !data.user) {
+      toast({
+        title: "Erro ao cadastrar",
+        description: error?.message ?? "Erro desconhecido",
+        variant: "destructive"
+      });
+      return;
+    }
+  
+    // 2. Inserir ministro na tabela `ministros` com o id_auth
+    const { error: insertError } = await supabase
+      .from('ministros')
+      .insert({
+        nome,
+        email,
+        telefone,
+        senha,
+        role,
+        id_auth: data.user.id, // esse campo precisa existir na sua tabela
+      });
+  
+    if (insertError) {
+      toast({
+        title: "Erro ao salvar ministro",
+        description: insertError.message,
+        variant: "destructive"
+      });
+      return;
+    }
+  
+    toast({
+      title: "Ministro cadastrado com sucesso",
+      description: `Ministro ${nome} foi criado.`,
+    });
+  
+    // Resetar formulário
     setNome('');
     setEmail('');
     setTelefone('');
     setSenha('');
     setRole('user');
   };
+  
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);

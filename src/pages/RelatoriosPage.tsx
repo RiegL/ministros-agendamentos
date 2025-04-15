@@ -1,11 +1,9 @@
 
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
-import {
-  getAgendamentos,
-  getDoentes,
-  getMinistros,
-} from "@/services/supabase-data";
+import { getDoentes } from '@/services/doentes';
+import { getMinistros } from '@/services/ministros';
+import { getAgendamentos } from '@/services/agendamentos';
 import { Agendamento, Doente, Ministro } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import {

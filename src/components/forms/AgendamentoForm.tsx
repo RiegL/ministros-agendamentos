@@ -1,19 +1,41 @@
-
-import React, { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Calendar as CalendarIcon, Clock, UserPlus, UserMinus } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
-import { Doente, Ministro } from '@/types';
+import React, { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  UserPlus,
+  UserMinus,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Doente, Ministro } from "@/types";
+import { SearchableSelect } from "../agendamentos/SearchableSelect";
 
 interface AgendamentoFormProps {
   doentes: Doente[];
@@ -29,38 +51,46 @@ interface AgendamentoFormProps {
   isLoading?: boolean;
 }
 
-const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: AgendamentoFormProps) => {
+const AgendamentoForm = ({
+  doentes,
+  ministros,
+  onSubmit,
+  isLoading = false,
+}: AgendamentoFormProps) => {
   const { toast } = useToast();
-  const [doenteId, setDoenteId] = useState('');
-  const [ministroId, setMinistroId] = useState('');
-  const [ministroSecundarioId, setMinistroSecundarioId] = useState<string | undefined>(undefined);
+  const [doenteId, setDoenteId] = useState("");
+  const [ministroId, setMinistroId] = useState("");
+  const [ministroSecundarioId, setMinistroSecundarioId] = useState<
+    string | undefined
+  >(undefined);
   const [hasSecondaryMinister, setHasSecondaryMinister] = useState(false);
   const [data, setData] = useState<Date | undefined>(undefined);
-  const [hora, setHora] = useState('');
-  const [observacoes, setObservacoes] = useState('');
+  const [hora, setHora] = useState("");
+  const [observacoes, setObservacoes] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!doenteId || !ministroId || !data || !hora) {
       toast({
         title: "Dados incompletos",
         description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-    
+
     // Check if primary and secondary ministers are the same
     if (hasSecondaryMinister && ministroSecundarioId === ministroId) {
       toast({
         title: "Ministros duplicados",
-        description: "O ministro secundário não pode ser o mesmo que o ministro principal.",
-        variant: "destructive"
+        description:
+          "O ministro secundário não pode ser o mesmo que o ministro principal.",
+        variant: "destructive",
       });
       return;
     }
-    
+
     onSubmit({
       doenteId,
       ministroId,
@@ -68,7 +98,7 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
       hora,
       observacoes,
     });
-    
+
     // Se houver ministro secundário, envia também para ele
     if (hasSecondaryMinister && ministroSecundarioId) {
       onSubmit({
@@ -79,15 +109,15 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
         observacoes: `(Ministro Secundário) ${observacoes}`,
       });
     }
-    
+
     // Reset form
-    setDoenteId('');
-    setMinistroId('');
+    setDoenteId("");
+    setMinistroId("");
     setMinistroSecundarioId(undefined);
     setHasSecondaryMinister(false);
     setData(undefined);
-    setHora('');
-    setObservacoes('');
+    setHora("");
+    setObservacoes("");
   };
 
   const toggleSecondaryMinister = () => {
@@ -98,58 +128,43 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
   };
 
   // Filter ministers for secondary selection (can't select the same as primary)
-  const filteredMinistros = ministros.filter(m => m.id !== ministroId);
+  const filteredMinistros = ministros.filter((m) => m.id !== ministroId);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Novo Agendamento</CardTitle>
-        <CardDescription>
-          Agende uma visita para um doente.
-        </CardDescription>
+        <CardDescription>Agende uma visita para um doente.</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="doente">Doente*</Label>
-            <Select value={doenteId} onValueChange={setDoenteId} required>
-              <SelectTrigger id="doente">
-                <SelectValue placeholder="Selecione o doente" />
-              </SelectTrigger>
-              <SelectContent>
-                {doentes.map((doente) => (
-                  <SelectItem key={doente.id} value={doente.id}>
-                    {doente.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={doenteId}
+              onChange={setDoenteId}
+              placeholder="Selecione o doente"
+              options={doentes.map((d) => ({ label: d.nome, value: d.id }))}
+            />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="ministro">Ministro Principal*</Label>
-            <Select value={ministroId} onValueChange={setMinistroId} required>
-              <SelectTrigger id="ministro">
-                <SelectValue placeholder="Selecione o ministro" />
-              </SelectTrigger>
-              <SelectContent>
-                {ministros.map((ministro) => (
-                  <SelectItem key={ministro.id} value={ministro.id}>
-                    {ministro.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={ministroId}
+              onChange={setMinistroId}
+              placeholder="Selecione o ministro"
+              options={ministros.map((m) => ({ label: m.nome, value: m.id }))}
+            />
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <Button
                 type="button"
-                variant="outline"
+                variant={hasSecondaryMinister ? "destructive" : "outline"}
                 size="sm"
                 onClick={toggleSecondaryMinister}
-                className="mb-2"
               >
                 {hasSecondaryMinister ? (
                   <>
@@ -164,30 +179,24 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
                 )}
               </Button>
             </div>
-            
+
             {hasSecondaryMinister && (
               <div className="space-y-2">
                 <Label htmlFor="ministroSecundario">Ministro Secundário</Label>
-                <Select 
-                  value={ministroSecundarioId} 
-                  onValueChange={setMinistroSecundarioId}
+                <SearchableSelect
+                  value={ministroSecundarioId || ""}
+                  onChange={setMinistroSecundarioId}
+                  placeholder="Selecione o ministro secundário"
+                  options={filteredMinistros.map((m) => ({
+                    label: m.nome,
+                    value: m.id,
+                  }))}
                   disabled={!ministroId}
-                >
-                  <SelectTrigger id="ministroSecundario">
-                    <SelectValue placeholder="Selecione o ministro secundário" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredMinistros.map((ministro) => (
-                      <SelectItem key={ministro.id} value={ministro.id}>
-                        {ministro.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
               </div>
             )}
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="data">Data*</Label>
@@ -202,7 +211,9 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {data ? format(data, "PPP", { locale: ptBR }) : "Selecione uma data"}
+                    {data
+                      ? format(data, "PPP", { locale: ptBR })
+                      : "Selecione uma data"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -216,7 +227,7 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
                 </PopoverContent>
               </Popover>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="hora">Hora*</Label>
               <div className="relative">
@@ -232,7 +243,7 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
               </div>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="observacoes">Observações</Label>
             <Textarea
@@ -244,7 +255,7 @@ const AgendamentoForm = ({ doentes, ministros, onSubmit, isLoading = false }: Ag
             />
           </div>
         </CardContent>
-        
+
         <CardFooter>
           <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? "Agendando..." : "Confirmar Agendamento"}

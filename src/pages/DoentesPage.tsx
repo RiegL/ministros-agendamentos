@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import { getDoentes, deleteDoente } from '@/services/supabase-data';
+import { getDoentes, deleteDoente } from '@/services/doentes';
 import { Doente } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import DoentesCard from '@/components/cards/DoentesCard';
