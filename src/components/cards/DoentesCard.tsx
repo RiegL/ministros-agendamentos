@@ -12,10 +12,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import {hasActiveScheduling, deleteDoente } from '@/services/doentes';
+import { hasActiveScheduling, getActiveScheduling, deleteDoente } from '@/services/doentes';
 import { getAgendamentos, addAgendamento } from '@/services/agendamentos';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
@@ -50,30 +50,25 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
   
   const { currentMinistro, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkActiveVisit = async () => {
       try {
-        // Verifica se há uma visita ativa
+        // Verifica se há uma visita ativa - essa verificação é global para todos os usuários
         const hasActive = await hasActiveScheduling(doente.id);
         setHasActiveVisit(hasActive);
         
         if (hasActive && currentMinistro) {
-          // Busca todos os agendamentos
-          const agendamentos = await getAgendamentos();
-          
-          // Filtra agendamentos ativos para este doente
-          const activeAgendamento = agendamentos.find(
-            a => a.doenteId === doente.id && 
-                 a.status === 'agendado'
-          );
+          // Busca detalhes do agendamento ativo
+          const activeAgendamento = await getActiveScheduling(doente.id);
           
           if (activeAgendamento) {
             setExistingAgendamento(activeAgendamento);
             
             // Verifica se o ministro atual NÃO é o ministro principal E NÃO é o secundário
             // E se não existe ministro secundário ainda
-            const canJoin = currentMinistro.id !== activeAgendamento.ministroId && 
+            const canJoin = activeAgendamento.ministroId !== currentMinistro.id && 
                            !activeAgendamento.ministroSecundarioId;
             
             setCanJoinVisit(canJoin);
@@ -81,11 +76,16 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
         }
       } catch (error) {
         console.error("Erro ao verificar agendamentos:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível verificar o status de agendamento.",
+          variant: "destructive"
+        });
       }
     };
     
     checkActiveVisit();
-  }, [doente.id, currentMinistro]);
+  }, [doente.id, currentMinistro, toast]);
   
   const handleAgendarVisita = () => {
     setIsDialogOpen(true);
@@ -106,6 +106,7 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
     setIsSubmitting(true);
     
     try {
+      // Verificar novamente antes de enviar para garantir que o estado não mudou
       const activeVisit = await hasActiveScheduling(doente.id);
       
       if (activeVisit && !canJoinVisit) {
@@ -115,14 +116,17 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
           variant: "destructive"
         });
         setIsSubmitting(false);
+        setIsDialogOpen(false);
         return;
       }
+      
+      const activeAgendamento = activeVisit ? await getActiveScheduling(doente.id) : null;
       
       await addAgendamento({
         doenteId: doente.id,
         ministroId: currentMinistro.id,
-        data: canJoinVisit && existingAgendamento ? new Date(existingAgendamento.data) : data,
-        hora: canJoinVisit && existingAgendamento ? existingAgendamento.hora : hora,
+        data: canJoinVisit && activeAgendamento ? new Date(activeAgendamento.data) : data,
+        hora: canJoinVisit && activeAgendamento ? activeAgendamento.hora : hora,
         observacoes,
         asSecondary: canJoinVisit
       });
@@ -137,6 +141,7 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
       setIsDialogOpen(false);
       navigate('/agendamentos');
     } catch (error) {
+      console.error("Erro ao agendar:", error);
       toast({
         title: "Erro ao realizar agendamento",
         description: "Não foi possível concluir o agendamento.",

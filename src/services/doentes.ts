@@ -1,19 +1,23 @@
+
+import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
-import { Doente } from "@/types";
+import { Doente, TelefoneDoente } from "@/types";
 
 export const getDoentes = async (): Promise<Doente[]> => {
   const { data: doentesData, error: doentesError } = await supabase
     .from('doentes')
     .select('*');
-
+  
   if (doentesError) throw doentesError;
-
+  
+  // Buscar todos os telefones de doentes
   const { data: telefonesData, error: telefonesError } = await supabase
     .from('telefones_doente')
     .select('*');
-
+  
   if (telefonesError) throw telefonesError;
-
+  
+  // Mapear os telefones para os doentes
   return doentesData.map(doente => {
     const telefones = telefonesData
       .filter(tel => tel.doente_id === doente.id)
@@ -21,7 +25,7 @@ export const getDoentes = async (): Promise<Doente[]> => {
         numero: tel.numero,
         descricao: tel.descricao
       }));
-
+    
     return {
       id: doente.id,
       nome: doente.nome,
@@ -37,6 +41,7 @@ export const getDoentes = async (): Promise<Doente[]> => {
 };
 
 export const addDoente = async (doente: Omit<Doente, 'id' | 'createdAt'>): Promise<Doente> => {
+  // Primeiro, inserir o doente
   const { data, error } = await supabase
     .from('doentes')
     .insert({
@@ -49,23 +54,24 @@ export const addDoente = async (doente: Omit<Doente, 'id' | 'createdAt'>): Promi
     })
     .select()
     .single();
-
+  
   if (error) throw error;
-
+  
+  // Depois, inserir os telefones (se houver)
   if (doente.telefones && doente.telefones.length > 0) {
     const telefonesParaInserir = doente.telefones.map(tel => ({
       doente_id: data.id,
       numero: tel.numero,
       descricao: tel.descricao
     }));
-
+    
     const { error: telError } = await supabase
       .from('telefones_doente')
       .insert(telefonesParaInserir);
-
+    
     if (telError) throw telError;
   }
-
+  
   return {
     id: data.id,
     nome: data.nome,
@@ -84,18 +90,50 @@ export const deleteDoente = async (id: string): Promise<void> => {
     .from('doentes')
     .delete()
     .eq('id', id);
-
+  
   if (error) throw error;
 };
 
+// Função global para verificar se um doente tem agendamento ativo, 
+// disponível para todos os usuários independente do papel
 export const hasActiveScheduling = async (doenteId: string): Promise<boolean> => {
   const { data, error } = await supabase
     .from('agendamentos')
     .select('id')
     .eq('doente_id', doenteId)
     .eq('status', 'agendado');
-
+  
   if (error) throw error;
-
+  
   return data.length > 0;
+};
+
+// Função para obter detalhes do agendamento ativo de um doente
+export const getActiveScheduling = async (doenteId: string) => {
+  const { data, error } = await supabase
+    .from('agendamentos')
+    .select('*')
+    .eq('doente_id', doenteId)
+    .eq('status', 'agendado')
+    .single();
+  
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // Não encontrou agendamento
+      return null;
+    }
+    throw error;
+  }
+  
+  return {
+    id: data.id,
+    doenteId: data.doente_id,
+    ministroId: data.ministro_id,
+    ministroSecundarioId: data.ministro_secundario_id || undefined,
+    data: new Date(data.data),
+    hora: data.hora,
+    status: data.status as 'agendado' | 'concluido' | 'cancelado',
+    observacoes: data.observacoes,
+    createdAt: new Date(data.created_at)
+  };
 };

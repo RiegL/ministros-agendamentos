@@ -113,7 +113,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
-          id_auth: string
+          id_auth: string | null
           nome: string
           role: string
           senha: string
@@ -123,7 +123,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
-          id_auth: string
+          id_auth?: string | null
           nome: string
           role: string
           senha: string
@@ -133,7 +133,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
-          id_auth: string
+          id_auth?: string | null
           nome?: string
           role?: string
           senha?: string

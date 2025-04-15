@@ -11,9 +11,9 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
-import {  deleteDoente, hasActiveScheduling } from '@/services/doentes';
+import { deleteDoente, hasActiveScheduling, getActiveScheduling } from '@/services/doentes';
 import { getAgendamentos, addAgendamento } from '@/services/agendamentos';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon } from 'lucide-react';
@@ -29,6 +29,7 @@ interface DoentesListProps {
 const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
   const { currentMinistro, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [openAgendarId, setOpenAgendarId] = useState<string | null>(null);
   const [openDeleteId, setOpenDeleteId] = useState<string | null>(null);
@@ -43,23 +44,40 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
   useEffect(() => {
     const checkVisits = async () => {
       const states: { [id: string]: { hasVisit: boolean, hasSecondarySpot: boolean } } = {};
-      const agendamentos: Agendamento[] = await getAgendamentos();
       
+      // Verificar status de cada doente individualmente usando as funções globais
       for (const doente of doentes) {
-        const activeAgendamentos = agendamentos.filter(
-          a => a.doenteId === doente.id && a.status === 'agendado'
-        );
-        
-        const hasVisit = activeAgendamentos.length > 0;
-        // Verifica se tem um agendamento ativo, mas sem ministro secundário
-        const hasSecondarySpot = activeAgendamentos.some(a => !a.ministroSecundarioId);
-        
-        states[doente.id] = { hasVisit, hasSecondarySpot };
+        try {
+          const hasVisit = await hasActiveScheduling(doente.id);
+          
+          if (hasVisit) {
+            const activeAgendamento = await getActiveScheduling(doente.id);
+            // Verifica se tem um agendamento ativo, mas sem ministro secundário
+            const hasSecondarySpot = activeAgendamento && !activeAgendamento.ministroSecundarioId;
+            
+            // Se o usuário atual for o ministro principal, não deve poder se juntar à visita
+            const canJoin = currentMinistro && activeAgendamento 
+              ? activeAgendamento.ministroId !== currentMinistro.id
+              : false;
+            
+            states[doente.id] = { 
+              hasVisit, 
+              hasSecondarySpot: hasSecondarySpot && canJoin 
+            };
+          } else {
+            states[doente.id] = { hasVisit: false, hasSecondarySpot: false };
+          }
+        } catch (error) {
+          console.error(`Erro ao verificar status do doente ${doente.id}:`, error);
+          states[doente.id] = { hasVisit: false, hasSecondarySpot: false };
+        }
       }
+      
       setActiveVisits(states);
     };
+    
     checkVisits();
-  }, [doentes]);
+  }, [doentes, currentMinistro]);
 
   const handleSubmit = async (e: React.FormEvent, doenteId: string) => {
     e.preventDefault();
@@ -71,42 +89,48 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
       });
       return;
     }
+    
     setIsSubmitting(true);
+    
     try {
+      // Verificar novamente antes de enviar
       const activeVisit = await hasActiveScheduling(doenteId);
       const doenteState = activeVisits[doenteId];
       
-      // Se já tem visita e está tentando agendar como ministro principal, bloqueie
       if (activeVisit && !doenteState?.hasSecondarySpot) {
         toast({
           title: "Agendamento não permitido",
-          description: "Já existe uma visita agendada com dois ministros.",
+          description: "Este doente já possui uma visita agendada completa.",
           variant: "destructive"
         });
+        setOpenAgendarId(null);
+        setIsSubmitting(false);
         return;
       }
       
-      // Se não tem visita ou tem espaço para ser ministro secundário
+      // Obter detalhes do agendamento existente se for juntar-se
+      const activeAgendamento = activeVisit ? await getActiveScheduling(doenteId) : null;
+      
       await addAgendamento({
         doenteId,
         ministroId: currentMinistro.id,
-        data,
-        hora,
+        data: doenteState?.hasVisit && activeAgendamento ? new Date(activeAgendamento.data) : data,
+        hora: doenteState?.hasVisit && activeAgendamento ? activeAgendamento.hora : hora,
         observacoes,
-        // Se já tem visita, adiciona como secundário
         asSecondary: doenteState?.hasVisit
       });
       
       toast({
-        title: "Visita agendada",
-        description: doenteState?.hasVisit 
-          ? "Você foi adicionado como ministro secundário."
-          : "A visita foi agendada com sucesso."
+        title: doenteState?.hasVisit 
+          ? "Você foi adicionado como ministro secundário" 
+          : "Visita agendada",
+        description: "O agendamento foi realizado com sucesso."
       });
       
       setOpenAgendarId(null);
       navigate('/agendamentos');
-    } catch {
+    } catch (error) {
+      console.error("Erro ao agendar:", error);
       toast({
         title: "Erro",
         description: "Não foi possível agendar a visita.",
