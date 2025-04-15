@@ -45,6 +45,7 @@ const AgendamentosList = ({
     return (
       ministros.find((m) => m.id === id) || {
         id: "",
+        id_auth: "", // Added the missing id_auth property
         nome: "Ministro não encontrado",
         email: "",
         telefone: "",

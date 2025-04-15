@@ -1,9 +1,11 @@
+
 import { Agendamento, Doente, Ministro } from "@/types";
 
 // Mock data (replace with your actual data source)
 let ministros: Ministro[] = [
   {
     id: "1",
+    id_auth: "auth_1", // Added id_auth property
     nome: "João Silva",
     email: "joao.silva@example.com",
     telefone: "123456789",
@@ -13,6 +15,7 @@ let ministros: Ministro[] = [
   },
   {
     id: "2",
+    id_auth: "auth_2", // Added id_auth property
     nome: "Maria Oliveira",
     email: "maria.oliveira@example.com",
     telefone: "987654321",
@@ -22,6 +25,7 @@ let ministros: Ministro[] = [
   },
   {
     id: "3",
+    id_auth: "auth_3", // Added id_auth property
     nome: "Carlos Pereira",
     email: "carlos.pereira@example.com",
     telefone: "555123456",
@@ -31,6 +35,7 @@ let ministros: Ministro[] = [
   },
   {
     id: "4",
+    id_auth: "auth_4", // Added id_auth property
     nome: "Ana Rodrigues",
     email: "ana.rodrigues@example.com",
     telefone: "333444555",
@@ -40,6 +45,7 @@ let ministros: Ministro[] = [
   },
   {
     id: "5",
+    id_auth: "auth_5", // Added id_auth property
     nome: "Pedro Santos",
     email: "pedro.santos@example.com",
     telefone: "666777888",
