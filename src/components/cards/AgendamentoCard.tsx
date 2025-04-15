@@ -2,12 +2,13 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, User, File, CheckCircle, XCircle, UserPlus } from 'lucide-react';
+import { Calendar, Clock, User, File, CheckCircle, XCircle, UserPlus, MapPin } from 'lucide-react';
 import { Agendamento, Doente, Ministro } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface AgendamentoCardProps {
   agendamento: Agendamento;
@@ -29,6 +30,7 @@ const AgendamentoCard = ({
   onJuntar
 }: AgendamentoCardProps) => {
   const { currentMinistro, isAdmin } = useAuth();
+  const { openMapsWithLocation } = useGeolocation();
   
   const getStatusBadge = () => {
     switch (agendamento.status) {
@@ -43,7 +45,6 @@ const AgendamentoCard = ({
     }
   };
 
-  // Verifica se o ministro atual não é nem o principal nem o secundário
   const podeJuntar = () => {
     if (!currentMinistro || !onJuntar) return false;
     return agendamento.status === 'agendado' &&
@@ -83,6 +84,19 @@ const AgendamentoCard = ({
             <div className="flex items-start mt-2">
               <File className="h-4 w-4 mr-2 mt-1" />
               <p className="text-sm text-muted-foreground">{agendamento.observacoes}</p>
+            </div>
+          )}
+          {doente.latitude && doente.longitude && (
+            <div className="flex items-center mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => openMapsWithLocation(doente.latitude, doente.longitude)}
+              >
+                <MapPin className="h-4 w-4 mr-2" />
+                Ver Localização
+              </Button>
             </div>
           )}
         </div>
