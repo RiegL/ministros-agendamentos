@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +16,7 @@ import NovoAgendamentoPage from "./pages/NovoAgendamentoPage";
 import RelatoriosPage from "./pages/RelatoriosPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
+import EditarDoentePage from "./pages/EditarDoentePage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +35,7 @@ const App = () => (
               <Route path="/doentes" element={<DoentesPage />} />
               <Route path="/agendamentos" element={<AgendamentosPage />} />
               <Route path="/cadastrar-doente" element={<CadastrarDoentePage />} />
+              <Route path="/editar-doente/:id" element={<EditarDoentePage />} />
               <Route path="/novo-agendamento" element={<NovoAgendamentoPage />} />
               <Route path="/relatorios" element={<RelatoriosPage />} />
             </Route>

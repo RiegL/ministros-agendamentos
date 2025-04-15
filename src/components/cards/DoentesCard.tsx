@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Phone, MapPin, FileText, AlertCircle, Trash2, UserPlus } from 'lucide-react';
+import { Calendar as CalendarIcon, Phone, MapPin, FileText, AlertCircle, Trash2, UserPlus, Edit } from 'lucide-react';
 import { Doente } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -55,19 +54,15 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
   useEffect(() => {
     const checkActiveVisit = async () => {
       try {
-        // Verifica se há uma visita ativa - essa verificação é global para todos os usuários
         const hasActive = await hasActiveScheduling(doente.id);
         setHasActiveVisit(hasActive);
         
         if (hasActive && currentMinistro) {
-          // Busca detalhes do agendamento ativo
           const activeAgendamento = await getActiveScheduling(doente.id);
           
           if (activeAgendamento) {
             setExistingAgendamento(activeAgendamento);
             
-            // Verifica se o ministro atual NÃO é o ministro principal E NÃO é o secundário
-            // E se não existe ministro secundário ainda
             const canJoin = activeAgendamento.ministroId !== currentMinistro.id && 
                            !activeAgendamento.ministroSecundarioId;
             
@@ -106,7 +101,6 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
     setIsSubmitting(true);
     
     try {
-      // Verificar novamente antes de enviar para garantir que o estado não mudou
       const activeVisit = await hasActiveScheduling(doente.id);
       
       if (activeVisit && !canJoinVisit) {
@@ -153,7 +147,6 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
   };
 
   const handleJoinVisit = () => {
-    // Pré-preencher com os dados do agendamento existente
     if (existingAgendamento) {
       setData(new Date(existingAgendamento.data));
       setHora(existingAgendamento.hora);
@@ -274,6 +267,15 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
               Agendar Visita
             </Button>
           )}
+          
+          <Button 
+            className="w-full" 
+            variant="outline"
+            onClick={() => navigate(`/editar-doente/${doente.id}`)}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Editar Doente
+          </Button>
           
           {isAdmin && (
             <Button 
