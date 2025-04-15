@@ -73,6 +73,8 @@ export type Database = {
           created_at: string
           endereco: string
           id: string
+          latitude: number | null
+          longitude: number | null
           nome: string
           observacoes: string | null
           setor: string
@@ -83,6 +85,8 @@ export type Database = {
           created_at?: string
           endereco: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           nome: string
           observacoes?: string | null
           setor: string
@@ -93,6 +97,8 @@ export type Database = {
           created_at?: string
           endereco?: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           nome?: string
           observacoes?: string | null
           setor?: string

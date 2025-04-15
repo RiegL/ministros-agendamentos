@@ -1,37 +1,70 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Minus, Phone } from 'lucide-react';
+import { Plus, Minus, Phone, MapPin, Navigation } from 'lucide-react';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { Doente } from '@/types';
 
 interface DoentesFormProps {
+  doente?: Doente; // Adicionando possibilidade de edição
   onSubmit: (data: {
+    id?: string;
     nome: string;
     endereco: string;
     setor: string;
     telefone: string;
     telefones: Array<{numero: string, descricao: string}>;
     observacoes: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }) => void;
   isLoading?: boolean;
 }
 
-const DoentesForm = ({ onSubmit, isLoading = false }: DoentesFormProps) => {
+const DoentesForm = ({ 
+  doente, 
+  onSubmit, 
+  isLoading = false 
+}: DoentesFormProps) => {
   const { toast } = useToast();
-  const [nome, setNome] = useState('');
-  const [endereco, setEndereco] = useState('');
-  const [setor, setSetor] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [observacoes, setObservacoes] = useState('');
+  const { location, error, getCurrentLocation, openMapsWithLocation } = useGeolocation();
   
-  // Array to store multiple phones
-  const [telefones, setTelefones] = useState<Array<{numero: string, descricao: string}>>([
-    { numero: '', descricao: '' }
-  ]);
+  const [nome, setNome] = useState(doente?.nome || '');
+  const [endereco, setEndereco] = useState(doente?.endereco || '');
+  const [setor, setSetor] = useState(doente?.setor || '');
+  const [telefone, setTelefone] = useState(doente?.telefone || '');
+  const [observacoes, setObservacoes] = useState(doente?.observacoes || '');
+  const [latitude, setLatitude] = useState(doente?.latitude || null);
+  const [longitude, setLongitude] = useState(doente?.longitude || null);
+  
+  const [telefones, setTelefones] = useState<Array<{numero: string, descricao: string}>>(
+    doente?.telefones?.length ? doente.telefones : [{ numero: '', descricao: '' }]
+  );
+
+  useEffect(() => {
+    if (location.latitude && location.longitude) {
+      setLatitude(location.latitude);
+      setLongitude(location.longitude);
+      toast({
+        title: "Localização capturada",
+        description: `Latitude: ${location.latitude}, Longitude: ${location.longitude}`
+      });
+    }
+  }, [location, toast]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Erro de Geolocalização",
+        description: error,
+        variant: "destructive"
+      });
+    }
+  }, [error, toast]);
 
   const handleAddPhone = () => {
     if (telefones.length < 3) {
@@ -76,33 +109,27 @@ const DoentesForm = ({ onSubmit, isLoading = false }: DoentesFormProps) => {
       return;
     }
     
-    // Filter out empty phone entries
     const validTelefones = telefones.filter(tel => tel.numero.trim() !== '');
     
     onSubmit({
+      id: doente?.id, // Inclui o ID para edição
       nome,
       endereco,
       setor,
-      telefone: telefones[0].numero, // Keep the original telefone field for backward compatibility
+      telefone: telefones[0].numero,
       telefones: validTelefones,
-      observacoes
+      observacoes,
+      latitude,
+      longitude
     });
-    
-    // Reset form
-    setNome('');
-    setEndereco('');
-    setSetor('');
-    setTelefone('');
-    setTelefones([{ numero: '', descricao: '' }]);
-    setObservacoes('');
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Cadastro de Doente</CardTitle>
+        <CardTitle>{doente ? 'Editar Doente' : 'Cadastro de Doente'}</CardTitle>
         <CardDescription>
-          Adicione um novo doente ao sistema para agendamento de visitas.
+          {doente ? 'Atualize as informações do doente' : 'Adicione um novo doente ao sistema para agendamento de visitas'}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -203,11 +230,32 @@ const DoentesForm = ({ onSubmit, isLoading = false }: DoentesFormProps) => {
               rows={3}
             />
           </div>
+          
+          <div className="flex items-center space-x-2 mb-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={getCurrentLocation}
+            >
+              <MapPin className="mr-2 h-4 w-4" /> Capturar Localização
+            </Button>
+            {latitude && longitude && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={() => openMapsWithLocation(latitude, longitude)}
+              >
+                <Navigation className="mr-2 h-4 w-4" /> Ver no Mapa
+              </Button>
+            )}
+          </div>
         </CardContent>
         
         <CardFooter>
           <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? "Cadastrando..." : "Cadastrar Doente"}
+            {doente ? 'Atualizar Doente' : 'Cadastrar Doente'}
           </Button>
         </CardFooter>
       </form>
