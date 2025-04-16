@@ -1,3 +1,4 @@
+
 // components/SearchableSelect.tsx
 import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -32,7 +33,7 @@ interface SearchableSelectProps {
 }
 
 export function SearchableSelect({
-  options,
+  options = [],  // Provide default empty array
   value,
   onChange,
   placeholder = "Selecione...",
@@ -41,7 +42,10 @@ export function SearchableSelect({
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
 
-  const selected = options.find((opt) => opt.value === value);
+  // Ensure options is always an array
+  const safeOptions = Array.isArray(options) ? options : [];
+  
+  const selected = safeOptions.find((opt) => opt.value === value);
 
   return (
     <div className="w-full">
@@ -66,7 +70,7 @@ export function SearchableSelect({
             <CommandInput placeholder="Buscar..." />
             <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
             <CommandGroup>
-              {options.map((opt) => (
+              {safeOptions.map((opt) => (
                 <CommandItem
                   key={opt.value}
                   value={opt.label}

@@ -9,6 +9,7 @@ import { getAgendamentos, addAgendamento } from '@/services/agendamentos';
 import { useToast } from '@/hooks/use-toast';
 import { Doente, Ministro, Agendamento } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 const NovoAgendamentoPage = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const NovoAgendamentoPage = () => {
   const [ministros, setMinistros] = useState<Ministro[]>([]);
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     // Verify that the user has permission to access this page
@@ -37,16 +39,22 @@ const NovoAgendamentoPage = () => {
     
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+        
         const [doentesData, ministrosData, agendamentosData] = await Promise.all([
           getDoentes(),
           getMinistros(),
           getAgendamentos()
         ]);
         
-        setDoentes(doentesData);
-        setMinistros(ministrosData);
-        setAgendamentos(agendamentosData);
+        // Ensure we're dealing with arrays
+        setDoentes(Array.isArray(doentesData) ? doentesData : []);
+        setMinistros(Array.isArray(ministrosData) ? ministrosData : []);
+        setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : []);
       } catch (error) {
+        console.error("Error fetching data:", error);
+        setError("Não foi possível carregar os dados necessários.");
         toast({
           title: "Erro ao carregar dados",
           description: "Não foi possível carregar as listas de doentes e ministros.",
@@ -97,6 +105,7 @@ const NovoAgendamentoPage = () => {
       
       navigate('/agendamentos');
     } catch (error) {
+      console.error("Error submitting appointment:", error);
       toast({
         title: "Erro ao realizar agendamento",
         description: "Não foi possível concluir o agendamento.",
@@ -107,12 +116,33 @@ const NovoAgendamentoPage = () => {
     }
   };
   
+  // Display error message if there's an error
+  if (error) {
+    return (
+      <Layout>
+        <div className="max-w-3xl mx-auto py-12">
+          <div className="bg-destructive/20 p-4 rounded-md text-center">
+            <h2 className="text-xl font-semibold text-destructive">Erro</h2>
+            <p className="mt-2">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+  
   // Se ainda estiver carregando, mostra um indicador
   if (isLoading) {
     return (
       <Layout>
-        <div className="max-w-3xl mx-auto flex justify-center items-center py-12">
-          <p>Carregando...</p>
+        <div className="max-w-3xl mx-auto flex flex-col justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+          <p>Carregando dados...</p>
         </div>
       </Layout>
     );

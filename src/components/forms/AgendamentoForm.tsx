@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -18,13 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
@@ -52,8 +46,8 @@ interface AgendamentoFormProps {
 }
 
 const AgendamentoForm = ({
-  doentes,
-  ministros,
+  doentes = [], // Provide default empty arrays
+  ministros = [],
   onSubmit,
   isLoading = false,
 }: AgendamentoFormProps) => {
@@ -67,6 +61,10 @@ const AgendamentoForm = ({
   const [data, setData] = useState<Date | undefined>(undefined);
   const [hora, setHora] = useState("");
   const [observacoes, setObservacoes] = useState("");
+
+  // Ensure arrays are always arrays
+  const safeDoentes = Array.isArray(doentes) ? doentes : [];
+  const safeMinistros = Array.isArray(ministros) ? ministros : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,30 +92,11 @@ const AgendamentoForm = ({
     onSubmit({
       doenteId,
       ministroId,
+      ministroSecundarioId: hasSecondaryMinister ? ministroSecundarioId : undefined,
       data,
       hora,
       observacoes,
     });
-
-    // Se houver ministro secundário, envia também para ele
-    if (hasSecondaryMinister && ministroSecundarioId) {
-      onSubmit({
-        doenteId,
-        ministroId: ministroSecundarioId, // agora ele é o principal nesse agendamento
-        data,
-        hora,
-        observacoes: `(Ministro Secundário) ${observacoes}`,
-      });
-    }
-
-    // Reset form
-    setDoenteId("");
-    setMinistroId("");
-    setMinistroSecundarioId(undefined);
-    setHasSecondaryMinister(false);
-    setData(undefined);
-    setHora("");
-    setObservacoes("");
   };
 
   const toggleSecondaryMinister = () => {
@@ -128,7 +107,12 @@ const AgendamentoForm = ({
   };
 
   // Filter ministers for secondary selection (can't select the same as primary)
-  const filteredMinistros = ministros.filter((m) => m.id !== ministroId);
+  const filteredMinistros = safeMinistros.filter((m) => m.id !== ministroId);
+
+  // Create options arrays for selects
+  const doenteOptions = safeDoentes.map((d) => ({ label: d.nome, value: d.id }));
+  const ministroOptions = safeMinistros.map((m) => ({ label: m.nome, value: m.id }));
+  const filteredMinistroOptions = filteredMinistros.map((m) => ({ label: m.nome, value: m.id }));
 
   return (
     <Card>
@@ -144,7 +128,7 @@ const AgendamentoForm = ({
               value={doenteId}
               onChange={setDoenteId}
               placeholder="Selecione o doente"
-              options={doentes.map((d) => ({ label: d.nome, value: d.id }))}
+              options={doenteOptions}
             />
           </div>
 
@@ -154,7 +138,7 @@ const AgendamentoForm = ({
               value={ministroId}
               onChange={setMinistroId}
               placeholder="Selecione o ministro"
-              options={ministros.map((m) => ({ label: m.nome, value: m.id }))}
+              options={ministroOptions}
             />
           </div>
 
@@ -187,10 +171,7 @@ const AgendamentoForm = ({
                   value={ministroSecundarioId || ""}
                   onChange={setMinistroSecundarioId}
                   placeholder="Selecione o ministro secundário"
-                  options={filteredMinistros.map((m) => ({
-                    label: m.nome,
-                    value: m.id,
-                  }))}
+                  options={filteredMinistroOptions}
                   disabled={!ministroId}
                 />
               </div>
