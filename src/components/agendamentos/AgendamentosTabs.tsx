@@ -13,6 +13,7 @@ interface AgendamentosTabsProps {
   onConcluir: (agendamentoId: string) => void;
   onCancelar: (agendamentoId: string) => void;
   onJuntar: (agendamentoId: string) => void;
+  onDelete?: (agendamentoId: string) => void;
 }
 
 const AgendamentosTabs = ({
@@ -24,6 +25,7 @@ const AgendamentosTabs = ({
   onConcluir,
   onCancelar,
   onJuntar,
+  onDelete,
 }: AgendamentosTabsProps) => {
   return (
     <Tabs defaultValue="todos" className="w-full">
@@ -43,6 +45,7 @@ const AgendamentosTabs = ({
           onConcluir={onConcluir}
           onCancelar={onCancelar}
           onJuntar={onJuntar}
+          onDelete={onDelete}
         />
       </TabsContent>
 
@@ -58,6 +61,7 @@ const AgendamentosTabs = ({
           onConcluir={onConcluir}
           onCancelar={onCancelar}
           onJuntar={onJuntar}
+          onDelete={onDelete}
         />
       </TabsContent>
 
@@ -73,6 +77,7 @@ const AgendamentosTabs = ({
           onConcluir={onConcluir}
           onCancelar={onCancelar}
           onJuntar={onJuntar}
+          onDelete={onDelete}
         />
       </TabsContent>
     </Tabs>

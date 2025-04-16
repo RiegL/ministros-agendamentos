@@ -15,6 +15,7 @@ interface AgendamentosListProps {
   onConcluir: (agendamentoId: string) => void;
   onCancelar: (agendamentoId: string) => void;
   onJuntar: (agendamentoId: string) => void;
+  onDelete?: (agendamentoId: string) => void;
 }
 
 const AgendamentosList = ({
@@ -26,6 +27,7 @@ const AgendamentosList = ({
   onConcluir,
   onCancelar,
   onJuntar,
+  onDelete,
 }: AgendamentosListProps) => {
   const getDoentePorId = (id: string) => {
     return (
@@ -45,7 +47,6 @@ const AgendamentosList = ({
     return (
       ministros.find((m) => m.id === id) || {
         id: "",
-        id_auth: "", // Added the missing id_auth property
         nome: "Ministro não encontrado",
         email: "",
         telefone: "",
@@ -99,6 +100,7 @@ const AgendamentosList = ({
             onConcluir={onConcluir}
             onCancelar={onCancelar}
             onJuntar={onJuntar}
+            onDelete={isAdmin ? onDelete : undefined}
           />
         );
       })}

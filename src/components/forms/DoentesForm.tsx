@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -7,17 +8,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Minus, Phone, MapPin, Navigation } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { Doente } from '@/types';
+import { Doente, TelefoneDoente } from '@/types';
 
 interface DoentesFormProps {
-  doente?: Doente; // Adicionando possibilidade de edição
+  doente?: Doente;
   onSubmit: (data: {
     id?: string;
     nome: string;
     endereco: string;
     setor: string;
     telefone: string;
-    telefones: Array<{numero: string, descricao: string}>;
+    telefones: TelefoneDoente[];
     observacoes: string;
     latitude?: number | null;
     longitude?: number | null;
@@ -41,8 +42,9 @@ const DoentesForm = ({
   const [latitude, setLatitude] = useState(doente?.latitude || null);
   const [longitude, setLongitude] = useState(doente?.longitude || null);
   
-  const [telefones, setTelefones] = useState<Array<{numero: string, descricao: string}>>(
-    doente?.telefones?.length ? doente.telefones : [{ numero: '', descricao: '' }]
+  // Initialize telefones based on doente's telefones or create a default array with one empty item
+  const [telefones, setTelefones] = useState<TelefoneDoente[]>(
+    doente?.telefones?.length ? [...doente.telefones] : [{ numero: '', descricao: '' }]
   );
 
   useEffect(() => {
@@ -112,7 +114,7 @@ const DoentesForm = ({
     const validTelefones = telefones.filter(tel => tel.numero.trim() !== '');
     
     onSubmit({
-      id: doente?.id, // Inclui o ID para edição
+      id: doente?.id,
       nome,
       endereco,
       setor,

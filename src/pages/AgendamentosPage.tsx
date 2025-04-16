@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { useSearchParams } from "react-router-dom";
-import {updateAgendamento, updateAgendamentoStatus,getAgendamentos  } from '@/services/agendamentos';
-import { getDoentes  } from '@/services/doentes';
+import { updateAgendamento, updateAgendamentoStatus, getAgendamentos, deleteAgendamento } from '@/services/agendamentos';
+import { getDoentes } from '@/services/doentes';
 import { getMinistros } from '@/services/ministros';
 import { Agendamento, Doente, Ministro } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -163,6 +163,28 @@ const AgendamentosPage = () => {
     }
   };
 
+  const handleDeleteAgendamento = async (agendamentoId: string) => {
+    if (!isAdmin) return;
+    
+    try {
+      await deleteAgendamento(agendamentoId);
+      
+      setAgendamentos(agendamentos.filter(a => a.id !== agendamentoId));
+      
+      toast({
+        title: "Agendamento excluído",
+        description: "O agendamento foi excluído com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao excluir agendamento:", error);
+      toast({
+        title: "Erro ao excluir agendamento",
+        description: "Não foi possível excluir o agendamento.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getDoentePorId = (id: string) => {
     return (
       doentes.find((d) => d.id === id) || {
@@ -238,6 +260,7 @@ const AgendamentosPage = () => {
           onConcluir={handleConcluirAgendamento}
           onCancelar={handleCancelarAgendamento}
           onJuntar={handleJuntarAgendamento}
+          onDelete={handleDeleteAgendamento}
         />
       </div>
     </Layout>

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, User, File, CheckCircle, XCircle, UserPlus, MapPin } from 'lucide-react';
+import { Calendar, Clock, User, File, CheckCircle, XCircle, UserPlus, MapPin, Trash2 } from 'lucide-react';
 import { Agendamento, Doente, Ministro } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -18,6 +18,7 @@ interface AgendamentoCardProps {
   onConcluir: (agendamentoId: string) => void;
   onCancelar: (agendamentoId: string) => void;
   onJuntar?: (agendamentoId: string) => void;
+  onDelete?: (agendamentoId: string) => void;
 }
 
 const AgendamentoCard = ({ 
@@ -27,7 +28,8 @@ const AgendamentoCard = ({
   ministroSecundario,
   onConcluir, 
   onCancelar,
-  onJuntar
+  onJuntar,
+  onDelete
 }: AgendamentoCardProps) => {
   const { currentMinistro, isAdmin } = useAuth();
   const { openMapsWithLocation } = useGeolocation();
@@ -65,7 +67,19 @@ const AgendamentoCard = ({
               )}
             </CardDescription>
           </div>
-          {getStatusBadge()}
+          <div className="flex items-center gap-2">
+            {getStatusBadge()}
+            {isAdmin && onDelete && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-destructive hover:text-destructive"
+                onClick={() => onDelete(agendamento.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="flex-grow">

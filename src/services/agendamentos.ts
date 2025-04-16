@@ -154,3 +154,12 @@ export const updateAgendamento = async (agendamento: Agendamento): Promise<Agend
     createdAt: new Date(data.created_at)
   };
 };
+
+export const deleteAgendamento = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('agendamentos')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
+};
