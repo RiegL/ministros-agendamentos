@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { Doente, TelefoneDoente } from "@/types";
@@ -34,7 +35,9 @@ export const getDoentes = async (): Promise<Doente[]> => {
       telefones: telefones.length > 0 ? telefones : undefined,
       observacoes: doente.observacoes,
       createdAt: new Date(doente.created_at),
-      cadastradoPor: doente.cadastrado_por
+      cadastradoPor: doente.cadastrado_por,
+      latitude: doente.latitude,
+      longitude: doente.longitude
     };
   });
 };
@@ -94,6 +97,7 @@ export const deleteDoente = async (id: string): Promise<void> => {
 };
 
 export const updateDoente = async (doente: Doente): Promise<Doente> => {
+  // First, update the main doente record
   const { data, error } = await supabase
     .from('doentes')
     .update({
@@ -111,26 +115,33 @@ export const updateDoente = async (doente: Doente): Promise<Doente> => {
   
   if (error) throw error;
 
-  // Se houver telefones, atualizar também
-  if (doente.telefones && doente.telefones.length > 0) {
-    // Primeiro, remover todos os telefones existentes para este doente
-    await supabase
+  // If there are telefones, update them too
+  if (Array.isArray(doente.telefones) && doente.telefones.length > 0) {
+    // First, remove all existing telefones for this doente
+    const { error: deleteError } = await supabase
       .from('telefones_doente')
       .delete()
       .eq('doente_id', doente.id);
 
-    // Depois, inserir novos telefones
-    const telefonesParaInserir = doente.telefones.map(tel => ({
-      doente_id: doente.id,
-      numero: tel.numero,
-      descricao: tel.descricao
-    }));
+    if (deleteError) throw deleteError;
+
+    // Only insert valid phone numbers (non-empty)
+    const validTelefones = doente.telefones.filter(tel => tel.numero.trim() !== '');
     
-    const { error: telError } = await supabase
-      .from('telefones_doente')
-      .insert(telefonesParaInserir);
-    
-    if (telError) throw telError;
+    if (validTelefones.length > 0) {
+      // Then, insert new telefones
+      const telefonesParaInserir = validTelefones.map(tel => ({
+        doente_id: doente.id,
+        numero: tel.numero,
+        descricao: tel.descricao || ''
+      }));
+      
+      const { error: telError } = await supabase
+        .from('telefones_doente')
+        .insert(telefonesParaInserir);
+      
+      if (telError) throw telError;
+    }
   }
   
   return {

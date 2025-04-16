@@ -25,9 +25,15 @@ const EditarDoentePage = () => {
     if (!doente) return;
     
     try {
+      // Make sure we're not sending duplicate telefones by filtering
+      const updatedTelefones = data.telefones ? 
+        data.telefones.filter(tel => tel.numero.trim() !== '') : 
+        [];
+      
       await updateDoente({
         ...doente,
-        ...data
+        ...data,
+        telefones: updatedTelefones
       });
       
       toast({
