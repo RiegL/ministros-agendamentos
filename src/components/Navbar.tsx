@@ -6,11 +6,11 @@ import { Calendar, Users, UserPlus, LogOut, UserCog, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
-  const { isAuthenticated, isAdmin, logout, currentMinistro } = useAuth();
+  const { isAuthenticated, isAdmin, signOut, currentMinistro } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    signOut();
     navigate('/login');
   };
 

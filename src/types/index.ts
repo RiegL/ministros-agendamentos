@@ -45,6 +45,6 @@ export interface AuthContextType {
   currentMinistro: Ministro | null;
   isAdmin: boolean;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<boolean>;
+  signOut: () => void;
 }

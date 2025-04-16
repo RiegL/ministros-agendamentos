@@ -5,7 +5,7 @@ import { Agendamento, Doente, Ministro } from "@/types";
 let ministros: Ministro[] = [
   {
     id: "1",
-    id_auth: "auth_1", // Added id_auth property
+    idAuth: "auth_1",
     nome: "João Silva",
     email: "joao.silva@example.com",
     telefone: "123456789",
@@ -15,7 +15,7 @@ let ministros: Ministro[] = [
   },
   {
     id: "2",
-    id_auth: "auth_2", // Added id_auth property
+    idAuth: "auth_2",
     nome: "Maria Oliveira",
     email: "maria.oliveira@example.com",
     telefone: "987654321",
@@ -25,7 +25,7 @@ let ministros: Ministro[] = [
   },
   {
     id: "3",
-    id_auth: "auth_3", // Added id_auth property
+    idAuth: "auth_3",
     nome: "Carlos Pereira",
     email: "carlos.pereira@example.com",
     telefone: "555123456",
@@ -35,7 +35,7 @@ let ministros: Ministro[] = [
   },
   {
     id: "4",
-    id_auth: "auth_4", // Added id_auth property
+    idAuth: "auth_4",
     nome: "Ana Rodrigues",
     email: "ana.rodrigues@example.com",
     telefone: "333444555",
@@ -45,7 +45,7 @@ let ministros: Ministro[] = [
   },
   {
     id: "5",
-    id_auth: "auth_5", // Added id_auth property
+    idAuth: "auth_5",
     nome: "Pedro Santos",
     email: "pedro.santos@example.com",
     telefone: "666777888",

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -20,9 +21,10 @@ const LoginPage = () => {
   const [senha, setSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { signIn, isAuthenticated } = useAuth();
   const [lembrar, setLembrar] = useState(false);
   const navigate = useNavigate();
+  
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
@@ -40,7 +42,7 @@ const LoginPage = () => {
         localStorage.removeItem("lembrarEmail");
       }
 
-      const success = await login(email, senha);
+      const success = await signIn(email, senha);
       if (success) {
         navigate("/");
       }

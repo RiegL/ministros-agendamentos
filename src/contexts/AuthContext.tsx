@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Ministro, AuthContextType } from '@/types';
 import { toast } from '@/hooks/use-toast';
@@ -8,8 +9,8 @@ const initialAuthContext: AuthContextType = {
   currentMinistro: null,
   isAdmin: false,
   isAuthenticated: false,
-  login: async () => false,
-  logout: () => {},
+  signIn: async () => false,
+  signOut: () => {},
 };
 
 // Create the auth context
@@ -41,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, senha: string): Promise<boolean> => {
+  const signIn = async (email: string, senha: string): Promise<boolean> => {
     try {
       // 1. Tentar autenticar com Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -85,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: ministroData.role as 'admin' | 'user',
         senha: ministroData.senha,
         createdAt: new Date(ministroData.created_at),
-        id_auth: ''
+        idAuth: ministroData.id_auth
       };
   
       // 4. Salvar o ministro no estado e no localStorage
@@ -113,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
 
   // Logout function
-  const logout = () => {
+  const signOut = () => {
     setCurrentMinistro(null);
     setIsAuthenticated(false);
     setIsAdmin(false);
@@ -132,8 +133,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentMinistro,
     isAdmin,
     isAuthenticated,
-    login,
-    logout,
+    signIn,
+    signOut,
   };
 
   return (

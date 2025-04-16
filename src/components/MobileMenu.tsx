@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const MobileMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, isAdmin, logout, currentMinistro } = useAuth();
+  const { isAuthenticated, isAdmin, signOut, currentMinistro } = useAuth();
   const navigate = useNavigate();
 
   const toggleMenu = () => {
@@ -15,7 +15,7 @@ const MobileMenu = () => {
   };
 
   const handleLogout = () => {
-    logout();
+    signOut();
     navigate('/login');
     setIsOpen(false);
   };

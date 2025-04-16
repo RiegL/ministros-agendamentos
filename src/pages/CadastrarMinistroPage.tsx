@@ -23,7 +23,7 @@ const CadastrarMinistroPage = () => {
     try {
       const ministroData = {
         ...data,
-        id_auth: generateIdAuth(), 
+        idAuth: generateIdAuth(), 
       };
 
       await addMinistro(ministroData);

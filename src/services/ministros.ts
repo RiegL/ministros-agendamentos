@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { Ministro } from "@/types";
@@ -11,7 +12,7 @@ export const getMinistros = async (): Promise<Ministro[]> => {
 
   return data.map(item => ({
     id: item.id,
-    id_auth: item.id_auth,
+    idAuth: item.id_auth,
     nome: item.nome,
     email: item.email,
     telefone: item.telefone,
@@ -25,7 +26,7 @@ export const addMinistro = async (ministro: Omit<Ministro, 'id' | 'createdAt'>):
   const { data, error } = await supabase
     .from('ministros')
     .insert({
-      id_auth: uuidv4(),
+      id_auth: ministro.idAuth || uuidv4(),
       nome: ministro.nome,
       email: ministro.email,
       telefone: ministro.telefone,
@@ -39,7 +40,7 @@ export const addMinistro = async (ministro: Omit<Ministro, 'id' | 'createdAt'>):
 
   return {
     id: data.id,
-    id_auth: data.id_auth,
+    idAuth: data.id_auth,
     nome: data.nome,
     email: data.email,
     telefone: data.telefone,
