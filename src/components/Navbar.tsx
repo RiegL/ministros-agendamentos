@@ -19,9 +19,9 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
-            <Link to="/" className="text-xl font-bold flex items-center">
+           
             <h1 className="text-xl font-bold">Capela São Pedro</h1>
-            </Link>
+           
           </div>
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-4">
