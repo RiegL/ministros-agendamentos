@@ -185,7 +185,7 @@ const DoentesCard = ({ doente, onDelete }: DoentesCardProps) => {
       return (
         <div className="flex items-center">
           <Phone className="h-4 w-4 mr-2" />
-          <p className="text-sm">{doente.telefone}</p>
+          <p className="text-sm">{doente.telefones?.[0]?.numero || "Telefone não disponível"}</p>
         </div>
       );
     }

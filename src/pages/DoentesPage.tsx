@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import { getDoentes, deleteDoente } from '@/services/doentes';
+import { getDoentes } from '@/services/doentes';
 import { Doente } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import DoentesCard from '@/components/cards/DoentesCard';
@@ -11,51 +10,41 @@ import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import DoentesList from '@/components/cards/DoentesList';
+import { useQuery } from '@tanstack/react-query';
 
 const DoentesPage = () => {
   const { toast } = useToast();
-  const [doentes, setDoentes] = useState<Doente[]>([]);
-  const [filteredDoentes, setFilteredDoentes] = useState<Doente[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  
-  const fetchDoentes = async () => {
-    try {
-      const data = await getDoentes();
-      setDoentes(data);
-      setFilteredDoentes(data);
-    } catch (error) {
-      toast({
-        title: "Erro ao carregar doentes",
-        description: "Não foi possível carregar a lista de doentes.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  useEffect(() => {
-    fetchDoentes();
-  }, [toast]);
-  
-  useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredDoentes(doentes);
-    } else {
-      const filtered = doentes.filter(doente => 
-        doente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doente.setor.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredDoentes(filtered);
-    }
-  }, [searchTerm, doentes]);
-  
+
+  const {
+    data: doentes = [],
+    isLoading,
+    refetch,
+    isError,
+  } = useQuery({
+    queryKey: ['doentes'],
+    queryFn: getDoentes,
+  });
+
+  // Filtro baseado no termo de busca
+  const filteredDoentes = doentes.filter((doente) =>
+    doente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doente.setor.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const handleDeleteDoente = () => {
-    fetchDoentes();
+    refetch(); // Atualiza a lista após deletar
   };
-  
+
+  if (isError) {
+    toast({
+      title: 'Erro ao carregar doentes',
+      description: 'Não foi possível carregar a lista.',
+      variant: 'destructive',
+    });
+  }
+
   return (
     <Layout>
       <div className="max-w-6xl mx-auto">
@@ -63,17 +52,17 @@ const DoentesPage = () => {
           <h1 className="text-3xl font-bold">Doentes</h1>
           <div className="flex gap-2">
             <div className="border rounded-md flex mr-2">
-              <Button 
-                variant={viewMode === 'card' ? 'default' : 'ghost'} 
-                size="sm" 
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="sm"
                 onClick={() => setViewMode('card')}
                 className="rounded-r-none"
               >
                 <Grid className="h-4 w-4" />
               </Button>
-              <Button 
-                variant={viewMode === 'list' ? 'default' : 'ghost'} 
-                size="sm" 
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
                 onClick={() => setViewMode('list')}
                 className="rounded-l-none"
               >
@@ -87,7 +76,7 @@ const DoentesPage = () => {
             </Link>
           </div>
         </div>
-        
+
         <div className="mb-6">
           <Input
             placeholder="Buscar por nome ou setor..."
@@ -96,7 +85,7 @@ const DoentesPage = () => {
             className="max-w-md"
           />
         </div>
-        
+
         {isLoading ? (
           <div className="flex justify-center py-20">
             <p>Carregando...</p>
@@ -115,9 +104,9 @@ const DoentesPage = () => {
             {viewMode === 'card' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
                 {filteredDoentes.map((doente) => (
-                  <DoentesCard 
-                    key={doente.id} 
-                    doente={doente} 
+                  <DoentesCard
+                    key={doente.id}
+                    doente={doente}
                     onDelete={handleDeleteDoente}
                   />
                 ))}

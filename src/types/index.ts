@@ -4,7 +4,6 @@ export interface Doente {
   nome: string;
   endereco: string;
   setor: string;
-  telefone: string;
   telefones?: TelefoneDoente[];
   observacoes?: string;
   createdAt: Date;

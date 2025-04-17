@@ -1,201 +1,195 @@
-
-import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { Doente, TelefoneDoente } from "@/types";
 
 export const getDoentes = async (): Promise<Doente[]> => {
+  // Pega todos os doentes
   const { data: doentesData, error: doentesError } = await supabase
-    .from('doentes')
-    .select('*');
-  
+    .from("doentes")
+    .select("*");
   if (doentesError) throw doentesError;
-  
-  // Buscar todos os telefones de doentes
+
+  // Pega todos os telefones relacionados
   const { data: telefonesData, error: telefonesError } = await supabase
-    .from('telefones_doente')
-    .select('*');
-  
+    .from("telefones_doente")
+    .select("*");
   if (telefonesError) throw telefonesError;
-  
-  // Mapear os telefones para os doentes
-  return doentesData.map(doente => {
+
+  // Mapeia cada doente já com seu array de telefones
+  return doentesData.map((d) => {
     const telefones = telefonesData
-      .filter(tel => tel.doente_id === doente.id)
-      .map(tel => ({
-        numero: tel.numero,
-        descricao: tel.descricao
+      .filter((t) => t.doente_id === d.id)
+      .map<TelefoneDoente>((t) => ({
+        numero: t.numero,
+        descricao: t.descricao || undefined,
       }));
-    
     return {
-      id: doente.id,
-      nome: doente.nome,
-      endereco: doente.endereco,
-      setor: doente.setor,
-      telefone: doente.telefone,
-      telefones: telefones.length > 0 ? telefones : undefined,
-      observacoes: doente.observacoes,
-      createdAt: new Date(doente.created_at),
-      cadastradoPor: doente.cadastrado_por,
-      latitude: doente.latitude,
-      longitude: doente.longitude
+      id: d.id,
+      nome: d.nome,
+      endereco: d.endereco,
+      setor: d.setor,
+      telefones: telefones,
+      observacoes: d.observacoes ?? undefined,
+      createdAt: new Date(d.created_at),
+      cadastradoPor: d.cadastrado_por,
+      latitude: d.latitude,
+      longitude: d.longitude,
     };
   });
 };
 
-export const addDoente = async (doente: Omit<Doente, 'id' | 'createdAt'>): Promise<Doente> => {
-  // Primeiro, inserir o doente
-  const { data, error } = await supabase
-    .from('doentes')
+export const addDoente = async (
+  doente: Omit<Doente, "id" | "createdAt">
+): Promise<Doente> => {
+  // Insere apenas os dados principais (sem telefone)
+  const { data: d, error } = await supabase
+    .from("doentes")
     .insert({
       nome: doente.nome,
       endereco: doente.endereco,
       setor: doente.setor,
-      telefone: doente.telefone,
       observacoes: doente.observacoes,
-      cadastrado_por: doente.cadastradoPor
+      cadastrado_por: doente.cadastradoPor,
+      latitude: doente.latitude,
+      longitude: doente.longitude,
     })
     .select()
     .single();
-  
   if (error) throw error;
-  
-  // Depois, inserir os telefones (se houver)
-  if (doente.telefones && doente.telefones.length > 0) {
-    const telefonesParaInserir = doente.telefones.map(tel => ({
-      doente_id: data.id,
+
+  // Agora insere TODOS os telefones (inclusive o principal, se quiser)
+  if (doente.telefones.length > 0) {
+    const telefonesParaInserir = doente.telefones.map((tel) => ({
+      doente_id: d.id,
       numero: tel.numero,
-      descricao: tel.descricao
+      descricao: tel.descricao ?? "",
     }));
-    
     const { error: telError } = await supabase
-      .from('telefones_doente')
+      .from("telefones_doente")
       .insert(telefonesParaInserir);
-    
     if (telError) throw telError;
   }
-  
+
   return {
-    id: data.id,
-    nome: data.nome,
-    endereco: data.endereco,
-    setor: data.setor,
-    telefone: data.telefone,
-    telefones: doente.telefones,
-    observacoes: data.observacoes,
-    createdAt: new Date(data.created_at),
-    cadastradoPor: data.cadastrado_por
+    id: d.id,
+    nome: d.nome,
+    endereco: d.endereco,
+    setor: d.setor,
+    // telefones: doente.telefones,
+    observacoes: d.observacoes ?? undefined,
+    createdAt: new Date(d.created_at),
+    cadastradoPor: d.cadastrado_por,
+    latitude: d.latitude,
+    longitude: d.longitude,
   };
 };
 
-export const deleteDoente = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from('doentes')
-    .delete()
-    .eq('id', id);
-  
-  if (error) throw error;
-};
-
 export const updateDoente = async (doente: Doente): Promise<Doente> => {
-  // First, update the main doente record
-  const { data, error } = await supabase
-    .from('doentes')
+  console.log("🔁 Iniciando update de doente:", doente.id);
+
+  // 1. Atualiza apenas os dados da tabela `doentes`
+  const { data: d, error } = await supabase
+    .from("doentes")
     .update({
       nome: doente.nome,
       endereco: doente.endereco,
       setor: doente.setor,
-      telefone: doente.telefone,
       observacoes: doente.observacoes,
       latitude: doente.latitude,
-      longitude: doente.longitude
+      longitude: doente.longitude,
     })
-    .eq('id', doente.id)
+    .eq("id", doente.id)
     .select()
     .single();
-  
+
   if (error) throw error;
+  console.log("✅ Doente atualizado:", d.id);
 
-  // If there are telefones, update them too
-  if (Array.isArray(doente.telefones) && doente.telefones.length > 0) {
-    // First, remove all existing telefones for this doente
-    const { error: deleteError } = await supabase
-      .from('telefones_doente')
-      .delete()
-      .eq('doente_id', doente.id);
+  // 2. Deleta os telefones antigos
+  const { data: deleted, error: deleteError } = await supabase
+    .from("telefones_doente")
+    .delete()
+    .eq("doente_id", doente.id)
+    .select();
+  console.log(`🗑️ Telefones deletados:`, deleted);
 
-    if (deleteError) throw deleteError;
-
-    // Only insert valid phone numbers (non-empty)
-    const validTelefones = doente.telefones.filter(tel => tel.numero.trim() !== '');
-    
-    if (validTelefones.length > 0) {
-      // Then, insert new telefones
-      const telefonesParaInserir = validTelefones.map(tel => ({
-        doente_id: doente.id,
-        numero: tel.numero,
-        descricao: tel.descricao || ''
-      }));
-      
-      const { error: telError } = await supabase
-        .from('telefones_doente')
-        .insert(telefonesParaInserir);
-      
-      if (telError) throw telError;
-    }
+  if (deleteError) {
+    console.error("❌ Erro ao deletar telefones antigos:", deleteError);
+    throw deleteError;
   }
-  
+  console.log("🗑️ Telefones antigos removidos com sucesso");
+
+  // 3. Insere os novos telefones (se houver)
+  const validTelefones = doente.telefones.filter((t) => t.numero.trim() !== "");
+  if (validTelefones.length > 0) {
+    const telefonesParaInserir = validTelefones.map((tel) => ({
+      doente_id: doente.id,
+      numero: tel.numero,
+      descricao: tel.descricao ?? "",
+    }));
+
+    const { error: telError } = await supabase
+      .from("telefones_doente")
+      .insert(telefonesParaInserir);
+
+    if (telError) {
+      console.error("❌ Erro ao inserir novos telefones:", telError);
+      throw telError;
+    }
+
+    console.log("✅ Telefones inseridos com sucesso");
+  }
+
   return {
-    id: data.id,
-    nome: data.nome,
-    endereco: data.endereco,
-    setor: data.setor,
-    telefone: data.telefone,
-    telefones: doente.telefones,
-    observacoes: data.observacoes,
-    createdAt: new Date(data.created_at),
-    cadastradoPor: data.cadastrado_por,
-    latitude: data.latitude,
-    longitude: data.longitude
+    id: d.id,
+    nome: d.nome,
+    endereco: d.endereco,
+    setor: d.setor,
+    telefones: validTelefones,
+    observacoes: d.observacoes ?? undefined,
+    createdAt: new Date(d.created_at),
+    cadastradoPor: d.cadastrado_por,
+    latitude: d.latitude,
+    longitude: d.longitude,
   };
 };
 
-export const hasActiveScheduling = async (doenteId: string): Promise<boolean> => {
-  const { data, error } = await supabase
-    .from('agendamentos')
-    .select('id')
-    .eq('doente_id', doenteId)
-    .eq('status', 'agendado');
-  
+export const deleteDoente = async (id: string): Promise<void> => {
+  // Opcional: primeiro delete telefones (para manter integridade)
+  await supabase.from("telefones_doente").delete().eq("doente_id", id);
+  const { error } = await supabase.from("doentes").delete().eq("id", id);
   if (error) throw error;
-  
+};
+
+export const hasActiveScheduling = async (
+  doenteId: string
+): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from("agendamentos")
+    .select("id")
+    .eq("doente_id", doenteId)
+    .eq("status", "agendado");
+  if (error) throw error;
   return data.length > 0;
 };
 
 export const getActiveScheduling = async (doenteId: string) => {
   const { data, error } = await supabase
-    .from('agendamentos')
-    .select('*')
-    .eq('doente_id', doenteId)
-    .eq('status', 'agendado')
+    .from("agendamentos")
+    .select("*")
+    .eq("doente_id", doenteId)
+    .eq("status", "agendado")
     .single();
-  
-  if (error) {
-    if (error.code === 'PGRST116') {
-      // Não encontrou agendamento
-      return null;
-    }
-    throw error;
-  }
-  
+  if (error && error.code !== "PGRST116") throw error;
+  if (!data) return null;
   return {
     id: data.id,
     doenteId: data.doente_id,
     ministroId: data.ministro_id,
-    ministroSecundarioId: data.ministro_secundario_id || undefined,
+    ministroSecundarioId: data.ministro_secundario_id ?? undefined,
     data: new Date(data.data),
     hora: data.hora,
-    status: data.status as 'agendado' | 'concluido' | 'cancelado',
-    observacoes: data.observacoes,
-    createdAt: new Date(data.created_at)
+    status: data.status as "agendado" | "concluido" | "cancelado",
+    observacoes: data.observacoes ?? undefined,
+    createdAt: new Date(data.created_at),
   };
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -9,20 +8,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Plus, Minus, Phone, MapPin, Navigation } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { Doente, TelefoneDoente } from '@/types';
+import { supabase } from '@/services/supabase-client';
+import { useAuth } from '@/contexts/AuthContext';
+import { addDoente } from '@/services/doentes';
+import { useNavigate } from 'react-router-dom';
 
 interface DoentesFormProps {
   doente?: Doente;
-  onSubmit: (data: {
-    id?: string;
-    nome: string;
-    endereco: string;
-    setor: string;
-    telefone: string;
-    telefones: TelefoneDoente[];
-    observacoes: string;
-    latitude?: number | null;
-    longitude?: number | null;
-  }) => void;
+  onSubmit: (data: Omit<Doente, 'id' | 'createdAt'> & { id?: string }) => void;
   isLoading?: boolean;
 }
 
@@ -33,19 +26,17 @@ const DoentesForm = ({
 }: DoentesFormProps) => {
   const { toast } = useToast();
   const { location, error, getCurrentLocation, openMapsWithLocation } = useGeolocation();
-  
+  const { currentMinistro } = useAuth();
   const [nome, setNome] = useState(doente?.nome || '');
   const [endereco, setEndereco] = useState(doente?.endereco || '');
   const [setor, setSetor] = useState(doente?.setor || '');
-  const [telefone, setTelefone] = useState(doente?.telefone || '');
   const [observacoes, setObservacoes] = useState(doente?.observacoes || '');
   const [latitude, setLatitude] = useState(doente?.latitude || null);
   const [longitude, setLongitude] = useState(doente?.longitude || null);
+  const navigate = useNavigate();
   
-  // Initialize telefones based on doente's telefones or create a default array with one empty item
-  const [telefones, setTelefones] = useState<TelefoneDoente[]>(
-    doente?.telefones?.length ? [...doente.telefones] : [{ numero: '', descricao: '' }]
-  );
+  // Telefones agora é o único estado relacionado aos números
+  const [telefones, setTelefones] = useState<TelefoneDoente[]>(doente?.telefones?.length ? [...doente.telefones] : [{ numero: '', descricao: '' }]);
 
   useEffect(() => {
     if (location.latitude && location.longitude) {
@@ -92,16 +83,11 @@ const DoentesForm = ({
     const newTelefones = [...telefones];
     newTelefones[index][field] = value;
     setTelefones(newTelefones);
-    
-    // Update the main telefone field with the first phone number for backward compatibility
-    if (index === 0 && field === 'numero') {
-      setTelefone(value);
-    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+  
     if (!nome || !endereco || !setor || telefones[0].numero === '') {
       toast({
         title: "Dados incompletos",
@@ -110,24 +96,53 @@ const DoentesForm = ({
       });
       return;
     }
-    
+  
     const validTelefones = telefones.filter(tel => tel.numero.trim() !== '');
-    
-    onSubmit({
-      id: doente?.id,
-      nome,
-      endereco,
-      setor,
-      telefone: telefones[0].numero,
-      telefones: validTelefones,
-      observacoes,
-      latitude,
-      longitude
-    });
+  
+    try {
+      // Cria o doente
+      const payload = {
+        nome,
+        endereco,
+        setor,
+        observacoes,
+        latitude,
+        longitude,
+        cadastradoPor: currentMinistro!.id,
+        telefones: validTelefones,
+        ...(doente?.id ? { id: doente.id } : {})
+      };
+      
+      onSubmit(payload);
+  
+      toast({
+        title: "Doente criado",
+        description: `Nome: ${payload.nome}`,
+      });
+
+      setNome('');
+      setEndereco('');
+      setSetor('');
+      setObservacoes('');
+      setLatitude(null);
+      setLongitude(null);
+      setTelefones([{ numero: '', descricao: '' }]);
+  
+      navigate('/doentes');
+      // Aqui você pode fazer algo com o retorno, como limpar o formulário ou redirecionar
+    } catch (error: any) {
+      toast({
+        title: "Erro ao cadastrar doente",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
+  
+  
 
   return (
-    <Card>
+    <Card className="max-w-3xl mx-auto">
       <CardHeader>
         <CardTitle>{doente ? 'Editar Doente' : 'Cadastro de Doente'}</CardTitle>
         <CardDescription>
@@ -213,9 +228,6 @@ const DoentesForm = ({
                     >
                       <Minus className="h-4 w-4 text-red-500" />
                     </Button>
-                  )}
-                  {index === 0 && telefones.length === 1 && (
-                    <Phone className="h-4 w-4 text-muted-foreground" />
                   )}
                 </div>
               </div>

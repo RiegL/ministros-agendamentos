@@ -78,7 +78,7 @@ export type Database = {
           nome: string
           observacoes: string | null
           setor: string
-          telefone: string
+          // telefone: string
         }
         Insert: {
           cadastrado_por: string
@@ -90,7 +90,7 @@ export type Database = {
           nome: string
           observacoes?: string | null
           setor: string
-          telefone: string
+          // telefone: string
         }
         Update: {
           cadastrado_por?: string
@@ -102,7 +102,7 @@ export type Database = {
           nome?: string
           observacoes?: string | null
           setor?: string
-          telefone?: string
+          // telefone?: string
         }
         Relationships: [
           {

@@ -173,8 +173,8 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
           <div key={doente.id} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 border-b text-sm">
             <div className="p-3">{doente.nome}</div>
             <div className="p-3">{doente.setor}</div>
-            <div className="p-3">{doente.telefones?.[0]?.numero || doente.telefone}</div>
-            <div className="p-3">{doente.endereco}</div>
+            <div className="p-3 truncate max-w-[150px]">{doente.telefones?.[0]?.numero}</div>
+            <div className="p-3 truncate max-w-[180px]">{doente.endereco}</div>
             <div className="p-3 flex justify-end gap-2">
               <Button
                 size="sm"
@@ -185,6 +185,14 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
                 {!visitState.hasVisit ? "Agendar" : 
                  visitState.hasSecondarySpot ? "Juntar-se" : "Já Agendado"}
               </Button>
+              <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(`/editar-doente/${doente.id}`)}
+                >
+                   
+                   Editar Doente
+                </Button>
               {isAdmin && (
                 <Button
                   size="sm"
@@ -193,7 +201,9 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
                 >
                   Excluir
                 </Button>
+                
               )}
+
             </div>
 
             {/* Dialog Agendamento */}
