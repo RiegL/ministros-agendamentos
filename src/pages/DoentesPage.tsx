@@ -28,10 +28,16 @@ const DoentesPage = () => {
   });
 
   // Filtro baseado no termo de busca
-  const filteredDoentes = doentes.filter((doente) =>
-    doente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doente.setor.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const normalizeText = (text) =>
+    text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  
+  const normalizedSearch = normalizeText(searchTerm.trim());
+  
+  const filteredDoentes = doentes.filter((doente) => {
+    const nome = normalizeText(doente.nome || "");
+    const setor = normalizeText(doente.setor || "");
+    return nome.includes(normalizedSearch) || setor.includes(normalizedSearch);
+  });
 
   const handleDeleteDoente = () => {
     refetch(); // Atualiza a lista após deletar
