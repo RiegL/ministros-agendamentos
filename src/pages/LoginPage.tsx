@@ -37,16 +37,17 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [lembrar, setLembrar] = useState(false);
 
-  // Recuperação de senha
+  // Estados para recuperação de senha
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [isSendingReset, setIsSendingReset] = useState(false);
 
-  // Definir nova senha
+  // Estados para definir nova senha
   const [showNewPasswordDialog, setShowNewPasswordDialog] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
+  // Preenche email salvo no localStorage
   useEffect(() => {
     const savedEmail = localStorage.getItem("lembrarEmail");
     if (savedEmail) {
@@ -55,12 +56,15 @@ const LoginPage = () => {
     }
   }, []);
 
+  // Se já autenticado, redireciona
   useEffect(() => {
     if (isAuthenticated) navigate("/");
   }, [isAuthenticated, navigate]);
 
+  // Detecta hash de recuperação de senha no link
   useEffect(() => {
-    if (window.location.hash.includes("type=recovery")) {
+    const hash = window.location.hash;
+    if (hash.includes("type=recovery")) {
       setShowNewPasswordDialog(true);
     }
   }, []);
@@ -93,7 +97,7 @@ const LoginPage = () => {
     if (error) {
       toast({ title: "Erro ao enviar link", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Link enviado", description: "Verifique seu e-mail." });
+      toast({ title: "Link enviado", description: "Verifique seu e-mail.", });
       setShowResetDialog(false);
       setResetEmail("");
     }
@@ -126,18 +130,50 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {/* Campos de email e senha padrão aqui */}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="senha">Senha</Label>
+              <div className="relative">
+                <Input id="senha" type={showPassword ? "text" : "password"} placeholder="senha" value={senha} onChange={e => setSenha(e.target.value)} required />
+                <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3" onClick={togglePasswordVisibility}>
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <input type="checkbox" id="lembrar" checked={lembrar} onChange={e => setLembrar(e.target.checked)} className="h-4 w-4" />
+                <Label htmlFor="lembrar">Lembrar de mim</Label>
+              </div>
+              <Button variant="link" className="text-sm text-blue-600 hover:underline" onClick={() => setShowResetDialog(true)} type="button">
+                Esqueci minha senha
+              </Button>
+            </div>
           </CardContent>
           <CardFooter>
-            <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? "Entrando..." : "Entrar"}
-            </Button>
+            <Button className="w-full" type="submit" disabled={isLoading}>{isLoading ? "Entrando..." : "Entrar"}</Button>
           </CardFooter>
         </form>
 
         {/* Diálogo de recuperação de senha */}
         <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-          {/* Conteúdo de reset aqui */}
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Recuperar senha</AlertDialogTitle>
+              <AlertDialogDescription>Digite seu e-mail para receber um link de redefinição de senha.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-2 py-2 px-6">
+              <Label htmlFor="reset-email">E-mail</Label>
+              <Input id="reset-email" type="email" placeholder="email@exemplo.com" value={resetEmail} onChange={e => setResetEmail(e.target.value)} />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleResetPassword} disabled={isSendingReset}>{isSendingReset ? "Enviando..." : "Enviar link"}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
         </AlertDialog>
 
         {/* Diálogo de nova senha após recovery */}
@@ -149,34 +185,14 @@ const LoginPage = () => {
             </AlertDialogHeader>
             <div className="space-y-2 py-2 px-6">
               <Label htmlFor="new-password">Nova senha</Label>
-              <div className="relative">
-                <Input
-                  id="new-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  className="pr-10"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute inset-y-0 right-0 flex items-center px-3"
-                  onClick={togglePasswordVisibility}
-                >
+              <Input id="new-password" type={showPassword ? "text" : "password"} placeholder="senha nova" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+              <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3" onClick={togglePasswordVisibility}>
                   {showPassword ? <EyeOff /> : <Eye />}
                 </Button>
-              </div>
             </div>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleNewPassword}
-                disabled={isResettingPassword}
-              >
-                {isResettingPassword ? "Redefinindo..." : "Redefinir senha"}
-              </AlertDialogAction>
+              <AlertDialogAction onClick={handleNewPassword} disabled={isResettingPassword}>{isResettingPassword ? "Redefinindo..." : "Redefinir senha"}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
