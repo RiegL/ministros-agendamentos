@@ -185,7 +185,10 @@ const LoginPage = () => {
             </AlertDialogHeader>
             <div className="space-y-2 py-2 px-6">
               <Label htmlFor="new-password">Nova senha</Label>
-              <Input id="new-password" type="password" placeholder="••••••••" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+              <Input id="new-password" type={showPassword ? "text" : "password"} placeholder="senha nova" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+              <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3" onClick={togglePasswordVisibility}>
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
             </div>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
