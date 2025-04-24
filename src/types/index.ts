@@ -26,6 +26,7 @@ export interface Ministro {
   senha: string;
   idAuth?: string;
   createdAt: Date;
+  codigo: number;
 }
 
 export interface Agendamento {
@@ -44,6 +45,9 @@ export interface AuthContextType {
   currentMinistro: Ministro | null;
   isAdmin: boolean;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<boolean>;
-  signOut: () => void;
+  codigo: number | null;
+  signIn: (email: string, senha: string) => Promise<boolean>
+  signInWithCode: (codigo: number) => Promise<boolean>
+  signOut: () => void
+  
 }

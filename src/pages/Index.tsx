@@ -12,7 +12,7 @@ const Index = () => {
   
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-2">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
           <Card className="bg-primary/5 hover:bg-primary/10 transition-colors">
             <CardContent className="p-6">

@@ -1,14 +1,26 @@
-
-import React, { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
-import { Eye, EyeOff } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MinistrosFormProps {
   onSubmit: (data: {
@@ -16,82 +28,83 @@ interface MinistrosFormProps {
     email: string;
     telefone: string;
     senha: string;
-    role: 'admin' | 'user';
+    codigo: number;
+    role: "admin" | "user";
   }) => void;
   isLoading?: boolean;
 }
 
 const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
   const { toast } = useToast();
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [senha, setSenha] = useState('');
-  const [role, setRole] = useState<'admin' | 'user'>('user');
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [senha, setSenha] = useState("");
+  const [role, setRole] = useState<"admin" | "user">("user");
+  const [codigo, setCodigo] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const { isAdmin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    if (!nome || !email || !telefone || !senha) {
+
+    if (!nome || !email || !telefone || !senha || !codigo) {
       toast({
         title: "Dados incompletos",
         description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-  
+
     // 1. Criar usuário no auth
     const { data, error } = await supabase.auth.signUp({
       email,
       password: senha,
     });
-  
+
     if (error || !data.user) {
       toast({
         title: "Erro ao cadastrar",
         description: error?.message ?? "Erro desconhecido",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-  
+
     // 2. Inserir ministro na tabela `ministros` com o id_auth
-    const { error: insertError } = await supabase
-      .from('ministros')
-      .insert({
-        nome,
-        email,
-        telefone,
-        senha,
-        role,
-        id_auth: data.user.id, // esse campo precisa existir na sua tabela
-      });
-  
+    const { error: insertError } = await supabase.from("ministros").insert({
+      nome,
+      email,
+      telefone,
+      senha,
+      role,
+      codigo: Number(codigo),
+      id_auth: data.user.id, // esse campo precisa existir na sua tabela
+    });
+
     if (insertError) {
       toast({
         title: "Erro ao salvar ministro",
         description: insertError.message,
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-  
+
     toast({
       title: "Ministro cadastrado com sucesso",
       description: `Ministro ${nome} foi criado.`,
     });
-  
+
     // Resetar formulário
-    setNome('');
-    setEmail('');
-    setTelefone('');
-    setSenha('');
-    setRole('user');
+    setNome("");
+    setEmail("");
+    setTelefone("");
+    setSenha("");
+    setCodigo("");
+    setRole("user");
   };
-  
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -117,7 +130,7 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="email">Email*</Label>
             <Input
@@ -129,7 +142,7 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="telefone">Telefone*</Label>
             <Input
@@ -140,14 +153,14 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="senha">Senha*</Label>
             <div className="relative">
               <Input
                 id="senha"
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="sua senha"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 required
@@ -167,11 +180,26 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
               </Button>
             </div>
           </div>
-          
+
+          <div className="space-y-2">
+            <Label htmlFor="codigo">Código de Acesso*</Label>
+            <Input
+              id="codigo"
+              type="number"
+              placeholder="ex: 2233"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              required
+            />
+          </div>
+
           {isAdmin && (
             <div className="space-y-2">
               <Label htmlFor="role">Tipo de Acesso*</Label>
-              <Select value={role} onValueChange={(value: 'admin' | 'user') => setRole(value)}>
+              <Select
+                value={role}
+                onValueChange={(value: "admin" | "user") => setRole(value)}
+              >
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Selecione o tipo de acesso" />
                 </SelectTrigger>
@@ -183,7 +211,7 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
             </div>
           )}
         </CardContent>
-        
+
         <CardFooter>
           <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? "Cadastrando..." : "Cadastrar Ministro"}

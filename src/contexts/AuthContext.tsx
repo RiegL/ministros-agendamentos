@@ -1,42 +1,36 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Ministro, AuthContextType } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-// Initial auth context state
 const initialAuthContext: AuthContextType = {
   currentMinistro: null,
   isAdmin: false,
   isAuthenticated: false,
+  codigo: null,
   signIn: async () => false,
+  signInWithCode: async () => false,
   signOut: () => {},
 };
 
-// Create the auth context
 const AuthContext = createContext<AuthContextType>(initialAuthContext);
 
-// Custom hook to use the auth context
 export const useAuth = () => useContext(AuthContext);
 
-// Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentMinistro, setCurrentMinistro] = useState<Ministro | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check for stored session on mount
   useEffect(() => {
-    const storedMinistro = localStorage.getItem('currentMinistro');
-    
-    if (storedMinistro) {
+    const stored = localStorage.getItem('currentMinistro');
+    if (stored) {
       try {
-        const ministro = JSON.parse(storedMinistro) as Ministro;
-        setCurrentMinistro(ministro);
+        const m = JSON.parse(stored) as Ministro;
+        setCurrentMinistro(m);
         setIsAuthenticated(true);
-        setIsAdmin(ministro.role === 'admin');
-      } catch (error) {
-        console.error("Failed to parse stored ministro:", error);
+        setIsAdmin(m.role === 'admin');
+      } catch {
         localStorage.removeItem('currentMinistro');
       }
     }
@@ -44,40 +38,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, senha: string): Promise<boolean> => {
     try {
-      // 1. Tentar autenticar com Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password: senha,
       });
   
-      if (error || !data?.user) {
-        toast({
-          title: "Falha no login",
-          description: error?.message || "Usuário não encontrado.",
-          variant: "destructive",
-        });
+      if (authError || !authData?.user) {
+        toast({ title: "Falha no login", description: authError?.message || "Credenciais inválidas.", variant: "destructive" });
         return false;
       }
   
-      const user = data.user;
-  
-      // 2. Buscar o ministro correspondente na tabela "ministros"
+      // Busca o perfil do ministro
       const { data: ministroData, error: ministroError } = await supabase
         .from("ministros")
         .select("*")
-        .eq("id_auth", user.id)
+        .eq("id_auth", authData.user.id)
         .single();
   
       if (ministroError || !ministroData) {
-        toast({
-          title: "Erro",
-          description: "Ministro não encontrado.",
-          variant: "destructive",
-        });
+        toast({ title: "Erro", description: "Ministro não encontrado.", variant: "destructive" });
         return false;
       }
   
-      // 3. Mapear os dados para o formato da interface Ministro
+      // **NOVA VERIFICAÇÃO DE ROLE**: apenas admins podem usar email/senha
+      if (ministroData.role !== "admin") {
+        toast({ title: "Acesso negado", description: "Ministros comuns devem usar o código de acesso.", variant: "destructive" });
+        return false;
+      }
+  
+      // --- resto do mapeamento e armazenamento ---
       const mappedMinistro: Ministro = {
         id: ministroData.id,
         nome: ministroData.nome,
@@ -86,54 +75,96 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: ministroData.role as 'admin' | 'user',
         senha: ministroData.senha,
         createdAt: new Date(ministroData.created_at),
-        idAuth: ministroData.id_auth
+        idAuth: ministroData.id_auth,
+        codigo: ministroData.codigo,
       };
-  
-      // 4. Salvar o ministro no estado e no localStorage
       setCurrentMinistro(mappedMinistro);
       setIsAuthenticated(true);
-      setIsAdmin(mappedMinistro.role === "admin");
+      setIsAdmin(true);
       localStorage.setItem("currentMinistro", JSON.stringify(mappedMinistro));
   
-      toast({
-        title: "Login bem-sucedido",
-        description: `Bem-vindo, ${mappedMinistro.nome}!`,
-      });
-  
+      toast({ title: "Login bem-sucedido", description: `Bem-vindo, ${mappedMinistro.nome}!` });
       return true;
-    } catch (error) {
-      console.error("Login error:", error);
-      toast({
-        title: "Erro de login",
-        description: "Ocorreu um erro ao fazer login. Tente novamente.",
-        variant: "destructive",
-      });
+  
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Erro de login", description: "Tente novamente.", variant: "destructive" });
       return false;
     }
   };
   
 
-  // Logout function
+  const signInWithCode = async (codigo: number): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+      .from("ministros")
+      .select("*")
+      .eq("codigo", codigo)
+      .in("role", ["user", "admin"])
+      .maybeSingle();
+    
+    if (error) {
+      // Erro de API (ex: network, RLS, SQL inválido)
+      toast({ title: "Erro de login", description: error.message, variant: "destructive" });
+      return false;
+    }
+    if (!data) {
+      // Nenhum usuário com aquele código
+      toast({ title: "Código inválido", description: "Verifique o código informado.", variant: "destructive" });
+      return false;
+    }
+
+      const mappedMinistro: Ministro = {
+        id: data.id,
+        nome: data.nome,
+        email: data.email,
+        telefone: data.telefone,
+        role: data.role as 'admin' | 'user',
+        senha: data.senha,
+        createdAt: new Date(data.created_at),
+        idAuth: data.id_auth,
+        codigo: data.codigo,
+      };
+
+      setCurrentMinistro(mappedMinistro);
+      setIsAuthenticated(true);
+      setIsAdmin(false);
+      localStorage.setItem("currentMinistro", JSON.stringify(mappedMinistro));
+
+      toast({
+        title: "Login bem-sucedido",
+        description: `Bem-vindo, ${mappedMinistro.nome}!`,
+      });
+
+      return true;
+    }  catch (err) {
+      console.error("Login with code error:", err);
+      toast({ title: "Erro de login", description: "Tente novamente.", variant: "destructive" });
+      return false;
+    }
+  };
+
   const signOut = () => {
     setCurrentMinistro(null);
     setIsAuthenticated(false);
     setIsAdmin(false);
     localStorage.removeItem('currentMinistro');
-    
+
+    supabase.auth.signOut();
+
     toast({
       title: "Logout realizado",
       description: "Você saiu da sua conta.",
     });
-
-    supabase.auth.signOut(); // Logout no Supabase
   };
 
-  // Auth context value
   const value: AuthContextType = {
     currentMinistro,
     isAdmin,
     isAuthenticated,
+    codigo: currentMinistro?.codigo ?? null,
     signIn,
+    signInWithCode,
     signOut,
   };
 

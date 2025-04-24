@@ -18,7 +18,8 @@ export const getMinistros = async (): Promise<Ministro[]> => {
     telefone: item.telefone,
     role: item.role as 'admin' | 'user',
     senha: item.senha,
-    createdAt: new Date(item.created_at)
+    createdAt: new Date(item.created_at),
+    codigo: item.codigo
   }));
 };
 
@@ -31,7 +32,8 @@ export const addMinistro = async (ministro: Omit<Ministro, 'id' | 'createdAt'>):
       email: ministro.email,
       telefone: ministro.telefone,
       role: ministro.role,
-      senha: ministro.senha
+      senha: ministro.senha,
+      codigo: ministro.codigo
     })
     .select()
     .single();
@@ -46,7 +48,9 @@ export const addMinistro = async (ministro: Omit<Ministro, 'id' | 'createdAt'>):
     telefone: data.telefone,
     role: data.role as 'admin' | 'user',
     senha: data.senha,
-    createdAt: new Date(data.created_at)
+    createdAt: new Date(data.created_at),
+    codigo: data.codigo
+
   };
 };
 

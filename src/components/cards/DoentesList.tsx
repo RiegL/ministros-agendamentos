@@ -38,7 +38,7 @@ import { getAgendamentos, addAgendamento } from "@/services/agendamentos";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Phone } from "lucide-react";
 import { Doente, Agendamento } from "@/types";
 import { cn } from "@/lib/utils";
 import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
@@ -55,6 +55,8 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
 
   const [openAgendarId, setOpenAgendarId] = useState<string | null>(null);
   const [openDeleteId, setOpenDeleteId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [doenteId, setDoenteId] = useState<string | null>(null);
 
   const [data, setData] = useState<Date | undefined>();
   const [hora, setHora] = useState("");
@@ -196,14 +198,6 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
 
   return (
     <div className="rounded-md border overflow-hidden">
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 bg-muted font-semibold text-sm text-muted-foreground border-b">
-        <div className="p-3">Nome</div>
-        <div className="p-3">Setor</div>
-        <div className="p-3">Telefone</div>
-        <div className="p-3">Endereço</div>
-        <div className="p-3 text-right">Ações</div>
-      </div> */}
-
       {doentes.map((doente) => {
         const visitState = activeVisits[doente.id] || {
           hasVisit: false,
@@ -214,23 +208,41 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
         return (
           <div
             key={doente.id}
-            className="border-b p-3 lg:grid lg:grid-cols-5 lg:gap-4 text-sm flex flex-col"
+            className="border-b p-3 text-sm flex flex-col lg:grid lg:grid-cols-5 lg:gap-4 sm:items-center"
           >
-            <div className="lg:hidden font-semibold">Nome:</div>
-            <div>{doente.nome}</div>
-
-            <div className="lg:hidden font-semibold">Setor:</div>
-            <div>{doente.setor}</div>
-
-            <div className="lg:hidden font-semibold">Telefone:</div>
-            <div className="truncate max-w-[150px]">
-              {doente.telefones?.[0]?.numero}
+            <div className="mb-2">
+              <span className="font-semibold">Nome:</span> {doente.nome}
             </div>
 
-            <div className="lg:hidden font-semibold">Endereço:</div>
-            <div className="truncate max-w-[180px]">{doente.endereco}</div>
+            <div className="mb-2">
+              <span className="font-semibold">Setor:</span> {doente.setor}
+            </div>
+            {/* Telefone e Endereço */}
+            <div className="mb-2">
+              <div className="flex flex-wrap items-center">
+                {doente.telefones && doente.telefones.length > 0 ? (
+                  doente.telefones.map((telefone, index) => (
+                    <div key={index}>
+                      <span className="font-semibold">Telefone: </span>
+                      <span>{telefone.numero}</span>
+                      {telefone.descricao && (
+                        <span className="text-muted-foreground ml-1">
+                          ({telefone.descricao})
+                        </span>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div>Não informado</div>
+                )}
+              </div>
+            </div>
 
-            <div className="mt-2 lg:mt-0 lg:flex lg:justify-end gap-2">
+            <div className="mb-2">
+              <span className="font-semibold">Endereço:</span> {doente.endereco}
+            </div>
+            {/* Botões de ação */}
+            <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
                 variant="outline"
@@ -243,6 +255,7 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
                   ? "Juntar-se"
                   : "Já Agendado"}
               </Button>
+
               <Button
                 size="sm"
                 variant="outline"
@@ -320,7 +333,7 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
                   </div>
                   <DialogFooter>
                     <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? "Agendando..." : "Confirmar"}
+                    {isSubmitting ? "Agendando..." : "Confirmar"}
                     </Button>
                   </DialogFooter>
                 </form>

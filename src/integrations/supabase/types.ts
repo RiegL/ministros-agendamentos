@@ -124,6 +124,7 @@ export type Database = {
           role: string
           senha: string
           telefone: string
+          codigo: number
         }
         Insert: {
           created_at?: string
@@ -134,6 +135,7 @@ export type Database = {
           role: string
           senha: string
           telefone: string
+          codigo: number
         }
         Update: {
           created_at?: string
@@ -144,6 +146,7 @@ export type Database = {
           role?: string
           senha?: string
           telefone?: string
+          codigo: number
         }
         Relationships: []
       }

@@ -77,7 +77,7 @@ const DoentesPage = () => {
             </div>
             <Link to="/cadastrar-doente">
               <Button>
-                <Plus className="mr-2 h-4 w-4" /> Cadastrar Doente
+                <Plus className=" h-4 w-2" /> Cadastrar
               </Button>
             </Link>
           </div>
@@ -121,6 +121,7 @@ const DoentesPage = () => {
               <DoentesList
                 doentes={filteredDoentes}
                 onDeleteDoente={handleDeleteDoente}
+
               />
             )}
           </ScrollArea>
