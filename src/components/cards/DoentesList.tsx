@@ -112,64 +112,43 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
     checkVisits();
   }, [doentes, currentMinistro]);
 
-  const handleSubmit = async (e: React.FormEvent, doenteId: string) => {
-    e.preventDefault();
-    if (!currentMinistro || !data || !hora) {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleQuickAgendamento = async (doenteId: string) => {
+    if (!currentMinistro) return;
     setIsSubmitting(true);
-
+  
     try {
-      // Verificar novamente antes de enviar
+      // Verificar se já existe um agendamento
       const activeVisit = await hasActiveScheduling(doenteId);
       const doenteState = activeVisits[doenteId];
-
+  
       if (activeVisit && !doenteState?.hasSecondarySpot) {
         toast({
           title: "Agendamento não permitido",
           description: "Este doente já possui uma visita agendada completa.",
           variant: "destructive",
         });
-        setOpenAgendarId(null);
-        setIsSubmitting(false);
         return;
       }
-
-      // Obter detalhes do agendamento existente se for juntar-se
-      const activeAgendamento = activeVisit
-        ? await getActiveScheduling(doenteId)
-        : null;
-
+  
+      const now = new Date(); // Pega a data atual
+  
+      // Agendar a visita
       await addAgendamento({
         doenteId,
         ministroId: currentMinistro.id,
-        data:
-          doenteState?.hasVisit && activeAgendamento
-            ? new Date(activeAgendamento.data)
-            : data,
-        hora:
-          doenteState?.hasVisit && activeAgendamento
-            ? activeAgendamento.hora
-            : hora,
-        observacoes,
-        asSecondary: doenteState?.hasVisit,
+        ministroSecundarioId: doenteState?.hasSecondarySpot ? currentMinistro.id : null, // Aqui você usa o ID do ministro secundário ou null
+        data: now, // Usa a data atual
+        hora: "", // Hora não será necessária
+        observacoes: "", // Não precisa de observações
       });
-
+  
       toast({
-        title: doenteState?.hasVisit
-          ? "Você foi adicionado como ministro secundário"
-          : "Visita agendada",
+        title: "Visita Agendada",
         description: "O agendamento foi realizado com sucesso.",
       });
-
-      setOpenAgendarId(null);
-      navigate("/agendamentos");
+  
+      setOpenAgendarId(null); // Fecha o modal de agendamento
+      navigate("/agendamentos"); // Redireciona para a lista de agendamentos
     } catch (error) {
       console.error("Erro ao agendar:", error);
       toast({
@@ -181,6 +160,7 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
       setIsSubmitting(false);
     }
   };
+  
 
   const handleDelete = async (id: string) => {
     setIsDeletingDoente(true);
@@ -280,63 +260,26 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
               onOpenChange={() => setOpenAgendarId(null)}
             >
               <DialogContent>
-                <form onSubmit={(e) => handleSubmit(e, doente.id)}>
-                  <DialogHeader>
-                    <DialogTitle>
-                      {!visitState.hasVisit
-                        ? "Agendar Visita"
-                        : "Juntar-se à Visita"}
-                    </DialogTitle>
-                    <DialogDescription>Para {doente.nome}</DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <Label>Ministro</Label>
-                    <Input disabled value={currentMinistro?.nome || ""} />
-                    <Label>Data</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left",
-                            !data && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="h-4 w-4 mr-2" />
-                          {data
-                            ? format(data, "PPP", { locale: ptBR })
-                            : "Escolher data"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={data}
-                          onSelect={setData}
-                          locale={ptBR}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <Label>Hora</Label>
-                    <Input
-                      type="time"
-                      value={hora}
-                      onChange={(e) => setHora(e.target.value)}
-                      required
-                    />
-                    <Label>Observações</Label>
-                    <Textarea
-                      value={observacoes}
-                      onChange={(e) => setObservacoes(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit" disabled={isSubmitting}>
+                <DialogHeader>
+                  <DialogTitle>Agendar Visita</DialogTitle>
+                  <DialogDescription>Para {doente.nome}</DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <span className="font-semibold">Ministro:</span>{" "}
+                  {currentMinistro?.nome || "Desconhecido"}
+                  <br />
+                  <span className="font-semibold">Data:</span>{" "}
+                  {new Date().toLocaleDateString()}
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    onClick={() => handleQuickAgendamento(doente.id)}
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? "Agendando..." : "Confirmar"}
-                    </Button>
-                  </DialogFooter>
-                </form>
+                  </Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
 

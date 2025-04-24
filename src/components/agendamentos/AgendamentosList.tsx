@@ -53,6 +53,7 @@ const AgendamentosList = ({
         role: "user" as "admin" | "user",
         senha: "",
         createdAt: new Date(),
+        codigo: 0,
       }
     );
   };

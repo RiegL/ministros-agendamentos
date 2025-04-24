@@ -27,10 +27,12 @@ export const addAgendamento = async ({
   data,
   hora,
   observacoes,
-  asSecondary = false
+  asSecondary = false,
+  
 }: {
   doenteId: string;
   ministroId: string;
+  ministroSecundarioId?: string;
   data: Date;
   hora: string;
   observacoes?: string;

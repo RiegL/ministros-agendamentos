@@ -216,6 +216,7 @@ const LoginPage = () => {
                   value={codigo}
                   onChange={(e) => setCodigo(e.target.value)}
                   required
+                  type="number"
                 />
               </>
             )}

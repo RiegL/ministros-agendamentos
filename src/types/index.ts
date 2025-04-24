@@ -41,6 +41,7 @@ export interface Agendamento {
   createdAt: Date;
 }
 
+
 export interface AuthContextType {
   currentMinistro: Ministro | null;
   isAdmin: boolean;

@@ -90,16 +90,7 @@ const AgendamentoCard = ({
               {format(new Date(agendamento.data), "PPP", { locale: ptBR })}
             </p>
           </div>
-          <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-2" />
-            <p className="text-sm">{agendamento.hora}</p>
-          </div>
-          {agendamento.observacoes && (
-            <div className="flex items-start mt-2">
-              <File className="h-4 w-4 mr-2 mt-1" />
-              <p className="text-sm text-muted-foreground">{agendamento.observacoes}</p>
-            </div>
-          )}
+
           {doente.latitude && doente.longitude && (
             <div className="flex items-center mt-2">
               <Button
