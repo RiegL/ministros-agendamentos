@@ -74,7 +74,7 @@ const NovoAgendamentoPage = () => {
     ministroSecundarioId?: string;
     data: Date;
     hora: string;
-    observacoes: string;
+    observacoes?: string;
   }) => {
     setIsSubmitting(true);
     
@@ -151,7 +151,6 @@ const NovoAgendamentoPage = () => {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Novo Agendamento</h1>
         <AgendamentoForm 
           doentes={doentes}
           ministros={ministros}

@@ -27,6 +27,7 @@ export const addAgendamento = async ({
   data,
   hora,
   observacoes,
+  ministroSecundarioId,
   asSecondary = false,
   
 }: {
@@ -77,6 +78,7 @@ export const addAgendamento = async ({
     .insert({
       doente_id: doenteId,
       ministro_id: ministroId,
+      ministro_secundario_id: ministroSecundarioId ?? null,
       data: data.toISOString().split('T')[0],
       hora,
       status: 'agendado',

@@ -16,7 +16,8 @@ const Layout = ({ children }: LayoutProps) => {
       <main className="flex-1 container mx-auto px-4 py-8">
         {children}
       </main>
-      {!isMobile && <Footer />} {/* só mostra se NÃO for mobile */}
+      {/* {!isMobile && <Footer />} só mostra se NÃO for mobile */}
+       <Footer />
     </div>
   );
 };
