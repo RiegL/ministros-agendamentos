@@ -131,7 +131,7 @@ const AgendamentoForm = ({
 
         {/* ministro secundário */}
         <div>
-          <Label>Ministro Secundário (opcional)</Label>
+          <Label >Ministro Secundário (opcional)</Label>
           <Command>
             <CommandInput placeholder="Buscar ministro secundário..." />
             <CommandList>
