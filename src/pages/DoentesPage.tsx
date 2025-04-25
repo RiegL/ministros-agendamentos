@@ -57,7 +57,7 @@ const DoentesPage = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Doentes</h1>
           <div className="flex gap-2">
-            <div className="border rounded-md flex mr-2">
+            {/* <div className="border rounded-md flex mr-2">
               <Button
                 variant={viewMode === 'card' ? 'default' : 'ghost'}
                 size="sm"
@@ -74,7 +74,7 @@ const DoentesPage = () => {
               >
                 <List className="h-4 w-4" />
               </Button>
-            </div>
+            </div> */}
             <Link to="/cadastrar-doente">
               <Button>
                 <Plus className=" h-4 w-2" /> Cadastrar
@@ -107,7 +107,7 @@ const DoentesPage = () => {
           </div>
         ) : (
           <ScrollArea className="h-[calc(100vh-220px)]">
-            {viewMode === 'card' ? (
+            {/* {viewMode === 'card' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
                 {filteredDoentes.map((doente) => (
                   <DoentesCard
@@ -117,13 +117,13 @@ const DoentesPage = () => {
                   />
                 ))}
               </div>
-            ) : (
+            ) : ( */}
               <DoentesList
                 doentes={filteredDoentes}
                 onDeleteDoente={handleDeleteDoente}
 
               />
-            )}
+            {/* )} */}
           </ScrollArea>
         )}
       </div>

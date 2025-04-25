@@ -38,7 +38,12 @@ import { getAgendamentos, addAgendamento } from "@/services/agendamentos";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Calendar as CalendarIcon, Phone } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  FileText,
+  MapPin,
+  Phone,
+} from "lucide-react";
 import { Doente, Agendamento } from "@/types";
 import { cn } from "@/lib/utils";
 import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
@@ -115,12 +120,12 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
   const handleQuickAgendamento = async (doenteId: string) => {
     if (!currentMinistro) return;
     setIsSubmitting(true);
-  
+
     try {
       // Verificar se já existe um agendamento
       const activeVisit = await hasActiveScheduling(doenteId);
       const doenteState = activeVisits[doenteId];
-  
+
       if (activeVisit && !doenteState?.hasSecondarySpot) {
         toast({
           title: "Agendamento não permitido",
@@ -129,24 +134,24 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
         });
         return;
       }
-  
+
       const now = new Date(); // Pega a data atual
-  
+
       // Agendar a visita
       await addAgendamento({
         doenteId,
         ministroId: currentMinistro.id,
-        ministroSecundarioId: doenteState?.hasSecondarySpot ? currentMinistro.id : null, // Aqui você usa o ID do ministro secundário ou null
-        data: now, // Usa a data atual
-        hora: "", // Hora não será necessária
-        observacoes: "", // Não precisa de observações
+        data: now,
+        hora: "",
+        observacoes: "",
+        asSecondary: doenteState?.hasSecondarySpot,
       });
-  
+
       toast({
         title: "Visita Agendada",
         description: "O agendamento foi realizado com sucesso.",
       });
-  
+
       setOpenAgendarId(null); // Fecha o modal de agendamento
       navigate("/agendamentos"); // Redireciona para a lista de agendamentos
     } catch (error) {
@@ -160,7 +165,6 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
       setIsSubmitting(false);
     }
   };
-  
 
   const handleDelete = async (id: string) => {
     setIsDeletingDoente(true);
@@ -186,25 +190,27 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
         const canSchedule = !visitState.hasVisit || visitState.hasSecondarySpot;
 
         return (
-          <div
-            key={doente.id}
-            className="border-b p-3 text-sm flex flex-col lg:grid lg:grid-cols-5 lg:gap-4 sm:items-center"
-          >
-            <div className="mb-2">
-              <span className="font-semibold">Nome:</span> {doente.nome}
-            </div>
+          <div key={doente.id}>
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4 w-full p-4 border rounded-md bg-white hover:bg-gray-50 transition-colors duration-200">
+              {/* Nome e observações */}
+              <div className="flex flex-col  flex-1">
+                <div>
+                  <span className="font-semibold">Nome: </span> {doente.nome}
+                </div>
+                <div>
+                  {" "}
+                  <span className="font-semibold">Obs:</span>{" "}
+                  {doente.observacoes || "Não informado"}
+                </div>
+              </div>
 
-            <div className="mb-2">
-              <span className="font-semibold">Setor:</span> {doente.setor}
-            </div>
-            {/* Telefone e Endereço */}
-            <div className="mb-2">
-              <div className="flex flex-wrap items-center">
+              {/* Telefones */}
+              <div className="flex flex-col flex-1">
                 {doente.telefones && doente.telefones.length > 0 ? (
                   doente.telefones.map((telefone, index) => (
                     <div key={index}>
-                      <span className="font-semibold">Telefone: </span>
-                      <span>{telefone.numero}</span>
+                      <span className="font-semibold">Telefone:</span>{" "}
+                      {telefone.numero}
                       {telefone.descricao && (
                         <span className="text-muted-foreground ml-1">
                           ({telefone.descricao})
@@ -213,45 +219,57 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
                     </div>
                   ))
                 ) : (
-                  <div>Não informado</div>
+                  <span>
+                    <span className="font-semibold">Telefone:</span> Não
+                    informado
+                  </span>
                 )}
               </div>
-            </div>
 
-            <div className="mb-2">
-              <span className="font-semibold">Endereço:</span> {doente.endereco}
-            </div>
-            {/* Botões de ação */}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setOpenAgendarId(doente.id)}
-                disabled={!canSchedule}
-              >
-                {!visitState.hasVisit
-                  ? "Agendar"
-                  : visitState.hasSecondarySpot
-                  ? "Juntar-se"
-                  : "Já Agendado"}
-              </Button>
+              {/* Endereço e Setor */}
+              <div className="flex flex-col  flex-1">
+                <div>
+                  <span className="font-semibold">Endereço:</span>{" "}
+                  {doente.endereco}
+                </div>
+                <div>
+                  <span className="font-semibold">Setor:</span> {doente.setor}
+                </div>
+              </div>
 
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => navigate(`/editar-doente/${doente.id}`)}
-              >
-                Editar
-              </Button>
-              {isAdmin && (
+              {/* Botões */}
+              <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
-                  variant="destructive"
-                  onClick={() => setOpenDeleteId(doente.id)}
+                  variant="default"
+                  onClick={() => setOpenAgendarId(doente.id)}
+                  disabled={!canSchedule}
                 >
-                  Excluir
+                  {!visitState.hasVisit
+                    ? "Agendar"
+                    : visitState.hasSecondarySpot
+                    ? "Juntar-se"
+                    : "Já Agendado"}
                 </Button>
-              )}
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(`/editar-doente/${doente.id}`)}
+                >
+                  Editar
+                </Button>
+
+                {isAdmin && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => setOpenDeleteId(doente.id)}
+                  >
+                    Excluir
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Dialog Agendamento */}

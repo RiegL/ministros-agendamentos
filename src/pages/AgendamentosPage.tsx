@@ -222,8 +222,20 @@ const AgendamentosPage = () => {
       ministro.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doente.setor.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus =
-      statusFilter === "todos" || agendamento.status === statusFilter;
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0); // Zera a hora pra comparar só a data
+      
+      const agendamentoData = new Date(agendamento.data); // ou agendamento.createdAt se não tiver campo data
+      agendamentoData.setHours(0, 0, 0, 0);
+      
+      const isHoje = agendamentoData.getTime() === hoje.getTime();
+      
+      const matchesStatus =
+        statusFilter === "todos" ||
+        agendamento.status === statusFilter;
+      
+      const mostrarAgendamento =
+        agendamento.status === "agendado" || isHoje;
 
     let matchesMinistro = true;
     if (ministroFilter !== "todos") {
@@ -232,7 +244,8 @@ const AgendamentosPage = () => {
         agendamento.ministroSecundarioId === ministroFilter;
     }
 
-    return matchesSearch && matchesStatus && matchesMinistro;
+    return matchesSearch && matchesStatus && matchesMinistro && mostrarAgendamento;
+
   });
 
   return (
