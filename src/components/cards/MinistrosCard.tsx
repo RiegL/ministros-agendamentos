@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, Calendar, Trash2 } from "lucide-react";
+import { Mail, Phone, Calendar, Trash2, Edit } from "lucide-react";
 import { Ministro } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -31,9 +31,10 @@ interface MinistrosCardProps {
   ministro: Ministro;
   onVerAgendamentos: (ministroId: string) => void;
   onDelete?: () => void;
+  onEdit: (ministro: Ministro) => void;  
 }
 
-const MinistrosCard = ({ ministro, onVerAgendamentos, onDelete }: MinistrosCardProps) => {
+const MinistrosCard = ({ ministro, onVerAgendamentos, onDelete, onEdit }: MinistrosCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -111,6 +112,14 @@ const MinistrosCard = ({ ministro, onVerAgendamentos, onDelete }: MinistrosCardP
         >
           <Calendar className="h-4 w-4 mr-2" />
           Ver Agendamentos
+        </Button>
+        <Button 
+          className="w-full" 
+          onClick={() => onEdit(ministro)}
+          variant="outline"
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Editar Ministro
         </Button>
 
         {isAdmin && (

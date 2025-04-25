@@ -80,3 +80,33 @@ export const deleteMinistro = async (id: string): Promise<void> => {
 
   if (error) throw error;
 };
+
+export const updateMinistro = async (ministro: Ministro): Promise<Ministro> => {
+  const { data, error } = await supabase
+    .from("ministros")
+    .update({
+      nome: ministro.nome,
+      email: ministro.email,
+      telefone: ministro.telefone,
+      role: ministro.role,
+      senha: ministro.senha,
+      codigo: ministro.codigo,
+    })
+    .eq("id", ministro.id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    idAuth: data.id_auth,
+    nome: data.nome,
+    email: data.email,
+    telefone: data.telefone,
+    role: data.role as "admin" | "user",
+    senha: data.senha,
+    createdAt: new Date(data.created_at),
+    codigo: data.codigo,
+  };
+};

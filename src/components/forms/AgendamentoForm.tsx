@@ -89,7 +89,8 @@ const AgendamentoForm = ({
                   }
                   className={`
                     ${doenteId === d.id ? "bg-green-300 text-green-800" : ""}
-                    hover:bg-transparent focus:bg-transparent cursor-pointer
+        data-[highlighted]:bg-transparent data-[highlighted]:text-inherit
+  cursor-pointer
                   `}
                 >
                   <>
@@ -116,7 +117,9 @@ const AgendamentoForm = ({
                   }
                   className={`
                     ${ministroId === m.id ? "bg-green-300 text-green-800" : ""}
-                    hover:bg-transparent focus:bg-transparent cursor-pointer
+                    hover:bg-transparent 
+                    focus:bg-transparent
+                    cursor-pointer
                   `}
                 >
                   <>
@@ -131,7 +134,7 @@ const AgendamentoForm = ({
 
         {/* ministro secundário */}
         <div>
-          <Label >Ministro Secundário (opcional)</Label>
+          <Label>Ministro Secundário (opcional)</Label>
           <Command>
             <CommandInput placeholder="Buscar ministro secundário..." />
             <CommandList>
@@ -151,7 +154,9 @@ const AgendamentoForm = ({
                           ? "bg-green-300 text-green-800"
                           : ""
                       }
-                      hover:bg-transparent focus:bg-transparent cursor-pointer
+                      hover:bg-transparent
+                      focus:bg-transparent
+                      cursor-pointer
                     `}
                   >
                     <>

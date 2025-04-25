@@ -101,6 +101,7 @@ const MinistrosPage = () => {
                 ministro={ministro}
                 onVerAgendamentos={handleVerAgendamentos}
                 onDelete={handleMinistroDeleted}
+                onEdit={(m) => navigate(`/ministros/editar/${m.id}`)}
               />
             ))}
           </div>
