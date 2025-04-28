@@ -1,10 +1,11 @@
-
 import React from 'react';
 import Layout from '@/components/Layout';
 import MinistrosForm from '@/components/forms/MinistrosForm';
 import { useNavigate } from 'react-router-dom';
 import { addMinistro } from '@/services/ministros';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/services/supabase-client';
+
 
 const CadastrarMinistroPage = () => {
   const navigate = useNavigate();
@@ -16,41 +17,50 @@ const CadastrarMinistroPage = () => {
     email: string;
     telefone: string;
     senha: string;
+    codigo: number;
     role: 'admin' | 'user';
   }) => {
     setIsSubmitting(true);
     
     try {
-      const ministroData = {
-        ...data,
-        idAuth: generateIdAuth(),
-        codigo: generateCodigo(), // Add the missing 'codigo' property
-      };
+      // 1. Cria o usuário no Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.senha,
+      });
 
-      await addMinistro(ministroData);
+      if (authError || !authData?.user?.id) {
+        throw new Error(authError?.message || 'Erro ao criar usuário no Auth');
+      }
+
+      const idAuth = authData.user.id;
+
+      // 2. Depois adiciona no ministros
+      await addMinistro({
+        idAuth,
+        nome: data.nome,
+        email: data.email,
+        telefone: data.telefone,
+        senha: data.senha,
+        codigo: data.codigo,
+        role: data.role,
+      });
       
       toast({
         title: "Ministro cadastrado com sucesso",
-        description: "O ministro foi adicionado à lista."
+        description: "O ministro foi adicionado à lista. Confirme o email para ativar a conta."
       });
       
       navigate('/ministros');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro ao cadastrar ministro",
-        description: "Não foi possível concluir o cadastro.",
+        description: error.message || "Não foi possível concluir o cadastro.",
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const generateIdAuth = () => {
-    return Math.random().toString(36).substring(2, 15); // Example implementation
-  };
-  const generateCodigo = () => {
-    return Math.floor(1000 + Math.random() * 9000); // Example implementation for 'codigo'
   };
 
   return (

@@ -1,73 +1,99 @@
-# Welcome to your Lovable project
 
-## Project info
+# 📖 Sistema de Cadastro e Gerenciamento de Ministros
 
-**URL**: https://lovable.dev/projects/4a8027c5-f182-4ec0-83e2-52eaee9cc23c
+Este é um sistema web desenvolvido com **React + Vite**, usando **Supabase** como backend para:
+- Cadastro de ministros
+- Login e autenticação de usuários
+- Associação de dados de usuários (`auth.users`) com tabelas personalizadas (`ministros`)
+- Agendamento e gerenciamento de visitas (em desenvolvimento)
 
-## How can I edit this code?
+O projeto utiliza **Service Role Key** para operações administrativas (como exclusão de usuários do Supabase Auth).
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## 🚀 Tecnologias Usadas
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4a8027c5-f182-4ec0-83e2-52eaee9cc23c) and start prompting.
+- **Vite** — Build Tool ultrarrápido
+- **React** — Framework JavaScript
+- **TypeScript** — Tipagem segura
+- **Supabase** — Backend as a Service (Banco de dados + Autenticação)
+- **Shadcn UI** — Biblioteca de componentes de interface
+- **React Router** — Gerenciamento de rotas
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## ⚙️ Instalação
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Clone o projeto:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+git clone https://github.com/seu-usuario/seu-repositorio.git
+cd seu-repositorio
 ```
 
-**Edit a file directly in GitHub**
+Instale as dependências:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm install
+# ou
+yarn install
+```
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🛠️ Configuração de Ambiente
 
-## What technologies are used for this project?
+Crie um arquivo `.env` na raiz do projeto e adicione:
 
-This project is built with:
+```env
+VITE_SUPABASE_URL=https://<seu-projeto>.supabase.co
+VITE_SUPABASE_ANON_KEY=<sua-public-api-key>
+VITE_SUPABASE_SERVICE_ROLE_KEY=<sua-service-role-key>
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- `VITE_SUPABASE_URL`: URL do seu projeto no Supabase.
+- `VITE_SUPABASE_ANON_KEY`: Chave pública para interações comuns.
+- `VITE_SUPABASE_SERVICE_ROLE_KEY`: Chave de serviço para ações administrativas (atenção: usar apenas em ambientes seguros).
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/4a8027c5-f182-4ec0-83e2-52eaee9cc23c) and click on Share -> Publish.
+## 📋 Scripts Disponíveis
 
-## Can I connect a custom domain to my Lovable project?
+- `npm run dev` — Inicia o projeto em modo de desenvolvimento.
+- `npm run build` — Gera a versão de produção.
+- `npm run preview` — Visualiza a build de produção localmente.
 
-Yes it is!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## ✨ Funcionalidades
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- [x] Cadastro de ministros com autenticação por e-mail e senha
+- [x] Confirmação de e-mail automática via Supabase
+- [x] Associação de `auth.users` com tabela personalizada `ministros`
+- [x] Login de usuários autenticados
+- [x] Edição e exclusão de ministros
+- [x] Excluir ministro tanto da tabela quanto do auth (opcional via Service Role)
+
+---
+
+## 🛡️ Segurança
+
+> Atenção: Nunca exponha sua `Service Role Key` em ambientes públicos.  
+> Para produção, prefira usar APIs backend para operações administrativas.
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT.  
+Sinta-se livre para utilizar, modificar e melhorar!
+
+---
+
+# 📢 Contato
+
+Caso tenha dúvidas, sugestões ou queira contribuir, entre em contato:
+
+- Email: [seu-email@exemplo.com](mailto:seu-email@exemplo.com)
+- LinkedIn: [Seu LinkedIn](https://linkedin.com/in/seu-usuario)
+
