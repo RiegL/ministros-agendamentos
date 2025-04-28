@@ -88,12 +88,5 @@ VITE_SUPABASE_SERVICE_ROLE_KEY=<sua-service-role-key>
 Este projeto está sob a licença MIT.  
 Sinta-se livre para utilizar, modificar e melhorar!
 
----
 
-# 📢 Contato
-
-Caso tenha dúvidas, sugestões ou queira contribuir, entre em contato:
-
-- Email: [seu-email@exemplo.com](mailto:seu-email@exemplo.com)
-- LinkedIn: [Seu LinkedIn](https://linkedin.com/in/seu-usuario)
 
