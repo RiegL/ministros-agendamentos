@@ -25,7 +25,7 @@ const DoentesPage = () => {
   } = useQuery({
     queryKey: ['doentes', page, pageSize],
     queryFn: () => getDoentes(page, pageSize),
-    staleTime: 5000, // Adjust the time as needed
+    staleTime: 5000, 
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
