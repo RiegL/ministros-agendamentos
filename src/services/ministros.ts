@@ -110,3 +110,25 @@ export const updateMinistro = async (ministro: Ministro): Promise<Ministro> => {
     codigo: data.codigo,
   };
 };
+
+export const getMinistroById = async (id: string): Promise<Ministro> => {
+  const { data, error } = await supabase
+    .from('ministros')
+    .select('*')
+    .eq('id', id)
+    .single(); // como é 1 só
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    idAuth: data.id_auth,
+    nome: data.nome,
+    email: data.email,
+    telefone: data.telefone,
+    role: data.role as 'admin' | 'user',
+    senha: data.senha,
+    createdAt: new Date(data.created_at),
+    codigo: data.codigo
+  };
+};

@@ -17,6 +17,7 @@ import RelatoriosPage from "./pages/RelatoriosPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 import EditarDoentePage from "./pages/EditarDoentePage";
+import EditarMinistroPage from "./pages/EditMinistroPage";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/editar-doente/:id" element={<EditarDoentePage />} />
               <Route path="/novo-agendamento" element={<NovoAgendamentoPage />} />
               <Route path="/relatorios" element={<RelatoriosPage />} />
+              <Route path="/ministros/editar/:id" element={<EditarMinistroPage />} />
             </Route>
             
             {/* Admin Only Routes */}

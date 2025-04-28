@@ -59,7 +59,6 @@ const CadastrarDoentePage = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Cadastrar Novo Doente</h1>
         <DoentesForm onSubmit={handleSubmit} isLoading={isSubmitting} />
       </div>
     </Layout>

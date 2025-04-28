@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface MinistrosFormProps {
   onSubmit: (data: {
@@ -32,18 +30,41 @@ interface MinistrosFormProps {
     role: "admin" | "user";
   }) => void;
   isLoading?: boolean;
+  initialData?: {
+    nome: string;
+    email: string;
+    telefone: string;
+    senha: string;
+    codigo: number;
+    role: "admin" | "user";
+  };
 }
 
-const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
+const MinistrosForm = ({ onSubmit, isLoading = false, initialData }: MinistrosFormProps) => {
   const { toast } = useToast();
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [senha, setSenha] = useState("");
-  const [role, setRole] = useState<"admin" | "user">("user");
-  const [codigo, setCodigo] = useState<string>("");
+  const [nome, setNome] = useState<string>(initialData?.nome || "");
+  const [email, setEmail] = useState<string>(initialData?.email || "");
+  const [telefone, setTelefone] = useState<string>(initialData?.telefone || "");
+  const [senha, setSenha] = useState<string>(initialData?.senha || "");
+  const [role, setRole] = useState<"admin" | "user">(initialData?.role || "user");
+  const [codigo, setCodigo] = useState<string>(initialData?.codigo.toString() || "");
   const [showPassword, setShowPassword] = useState(false);
-  const { isAdmin } = useAuth();
+
+  // Função para mostrar ou esconder a senha
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  useEffect(() => {
+    if (initialData) {
+      setNome(initialData.nome);
+      setEmail(initialData.email);
+      setTelefone(initialData.telefone);
+      setSenha(initialData.senha);
+      setRole(initialData.role);
+      setCodigo(initialData.codigo.toString());
+    }
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,65 +78,25 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
       return;
     }
 
-    // 1. Criar usuário no auth
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password: senha,
-    });
-
-    if (error || !data.user) {
-      toast({
-        title: "Erro ao cadastrar",
-        description: error?.message ?? "Erro desconhecido",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // 2. Inserir ministro na tabela `ministros` com o id_auth
-    const { error: insertError } = await supabase.from("ministros").insert({
+    // Envia os dados para o onSubmit (cadastro ou edição)
+    onSubmit({
       nome,
       email,
       telefone,
       senha,
-      role,
       codigo: Number(codigo),
-      id_auth: data.user.id, // esse campo precisa existir na sua tabela
+      role,
     });
-
-    if (insertError) {
-      toast({
-        title: "Erro ao salvar ministro",
-        description: insertError.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Ministro cadastrado com sucesso",
-      description: `Ministro ${nome} foi criado.`,
-    });
-
-    // Resetar formulário
-    setNome("");
-    setEmail("");
-    setTelefone("");
-    setSenha("");
-    setCodigo("");
-    setRole("user");
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Cadastro de Ministro</CardTitle>
+        <CardTitle>{initialData ? "Editar Ministro" : "Cadastro de Ministro"}</CardTitle>
         <CardDescription>
-          Adicione um novo ministro ao sistema para realizar agendamentos.
+          {initialData
+            ? "Edite os dados do ministro."
+            : "Adicione um novo ministro ao sistema para realizar agendamentos."}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -163,7 +144,7 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
                 placeholder="sua senha"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
-                required
+                required={!initialData} // Senha é obrigatória apenas para cadastro
               />
               <Button
                 type="button"
@@ -193,28 +174,27 @@ const MinistrosForm = ({ onSubmit, isLoading = false }: MinistrosFormProps) => {
             />
           </div>
 
-          {isAdmin && (
-            <div className="space-y-2">
-              <Label htmlFor="role">Tipo de Acesso*</Label>
-              <Select
-                value={role}
-                onValueChange={(value: "admin" | "user") => setRole(value)}
-              >
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Selecione o tipo de acesso" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">Ministro (Usuário)</SelectItem>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          {/* Se for Admin, mostrar o campo de Role */}
+          <div className="space-y-2">
+            <Label htmlFor="role">Tipo de Acesso*</Label>
+            <Select
+              value={role}
+              onValueChange={(value: "admin" | "user") => setRole(value)}
+            >
+              <SelectTrigger id="role">
+                <SelectValue placeholder="Selecione o tipo de acesso" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">Ministro (Usuário)</SelectItem>
+                <SelectItem value="admin">Administrador</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
 
         <CardFooter>
           <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? "Cadastrando..." : "Cadastrar Ministro"}
+            {isLoading ? (initialData ? "Editando..." : "Cadastrando...") : (initialData ? "Editar Ministro" : "Cadastrar Ministro")}
           </Button>
         </CardFooter>
       </form>

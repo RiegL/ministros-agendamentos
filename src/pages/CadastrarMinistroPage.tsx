@@ -23,7 +23,8 @@ const CadastrarMinistroPage = () => {
     try {
       const ministroData = {
         ...data,
-        idAuth: generateIdAuth(), 
+        idAuth: generateIdAuth(),
+        codigo: generateCodigo(), // Add the missing 'codigo' property
       };
 
       await addMinistro(ministroData);
@@ -48,11 +49,13 @@ const CadastrarMinistroPage = () => {
   const generateIdAuth = () => {
     return Math.random().toString(36).substring(2, 15); // Example implementation
   };
-  
+  const generateCodigo = () => {
+    return Math.floor(1000 + Math.random() * 9000); // Example implementation for 'codigo'
+  };
+
   return (
     <Layout>
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Cadastrar Novo Ministro</h1>
         <MinistrosForm onSubmit={handleSubmit} isLoading={isSubmitting} />
       </div>
     </Layout>
