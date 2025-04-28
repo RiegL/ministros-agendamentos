@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { getDoentes } from '@/services/doentes';
-import { Doente } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import DoentesCard from '@/components/cards/DoentesCard';
 import { Button } from '@/components/ui/button';
-import { Plus, Grid, List } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,23 +14,27 @@ const DoentesPage = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const {
     data: doentes = [],
     isLoading,
-    refetch,
     isError,
+    refetch,
   } = useQuery({
-    queryKey: ['doentes'],
-    queryFn: getDoentes,
+    queryKey: ['doentes', page, pageSize],
+    queryFn: () => getDoentes(page, pageSize),
+    staleTime: 5000, // Adjust the time as needed
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
-  // Filtro baseado no termo de busca
-  const normalizeText = (text) =>
+  const normalizeText = (text: string) =>
     text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  
+
   const normalizedSearch = normalizeText(searchTerm.trim());
-  
+
   const filteredDoentes = doentes.filter((doente) => {
     const nome = normalizeText(doente.nome || "");
     const setor = normalizeText(doente.setor || "");
@@ -40,7 +42,7 @@ const DoentesPage = () => {
   });
 
   const handleDeleteDoente = () => {
-    refetch(); // Atualiza a lista após deletar
+    refetch();
   };
 
   if (isError) {
@@ -57,32 +59,38 @@ const DoentesPage = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Doentes</h1>
           <div className="flex gap-2">
-            {/* <div className="border rounded-md flex mr-2">
-              <Button
-                variant={viewMode === 'card' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('card')}
-                className="rounded-r-none"
-              >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="rounded-l-none"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div> */}
             <Link to="/cadastrar-doente">
               <Button>
-                <Plus className=" h-4 w-2" /> Cadastrar
+                <Plus className="h-4 w-2" /> Cadastrar
               </Button>
             </Link>
           </div>
         </div>
 
+        {/* SELECT pageSize */}
+        <div className="flex items-center gap-2 mb-4">
+          <label htmlFor="pageSize" className="text-sm">
+            Mostrar:
+          </label>
+          <select
+            id="pageSize"
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1); // Sempre volta para página 1
+            }}
+            className="border rounded-md px-2 py-1 text-sm"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <span className="text-sm">doentes por página</span>
+        </div>
+
+        {/* INPUT de busca */}
         <div className="mb-6">
           <Input
             placeholder="Buscar por nome ou setor..."
@@ -106,25 +114,38 @@ const DoentesPage = () => {
             </Link>
           </div>
         ) : (
-          <ScrollArea className="h-[calc(100vh-220px)]">
-            {/* {viewMode === 'card' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
-                {filteredDoentes.map((doente) => (
-                  <DoentesCard
-                    key={doente.id}
-                    doente={doente}
-                    onDelete={handleDeleteDoente}
-                  />
-                ))}
-              </div>
-            ) : ( */}
+          <>
+            <ScrollArea className="h-[calc(100vh-320px)]">
               <DoentesList
                 doentes={filteredDoentes}
                 onDeleteDoente={handleDeleteDoente}
-
               />
-            {/* )} */}
-          </ScrollArea>
+            </ScrollArea>
+
+            {/* CONTROLE de página */}
+            <div className="flex justify-center items-center gap-4 mt-6">
+              <Button
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                disabled={page === 1}
+                variant="outline"
+                size="sm"
+              >
+                Anterior
+              </Button>
+
+              <span className="text-sm">
+                Página {page}
+              </span>
+
+              <Button
+                onClick={() => setPage((p) => p + 1)}
+                variant="outline"
+                size="sm"
+              >
+                Próxima
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </Layout>

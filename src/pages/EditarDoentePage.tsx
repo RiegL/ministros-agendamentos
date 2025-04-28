@@ -16,7 +16,7 @@ const EditarDoentePage = () => {
 
   const { data: doentes, isLoading, refetch } = useQuery({
     queryKey: ['doentes'],
-    queryFn: getDoentes
+    queryFn: () => getDoentes()
   });
 
   const doente = doentes?.find((d) => d.id === id);

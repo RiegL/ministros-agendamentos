@@ -1,20 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Doente, TelefoneDoente } from "@/types";
 
-export const getDoentes = async (): Promise<Doente[]> => {
-  // Pega todos os doentes
+export const getDoentes = async (page = 1, pageSize = 10): Promise<Doente[]> => {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   const { data: doentesData, error: doentesError } = await supabase
     .from("doentes")
-    .select("*");
+    .select("*")
+    .range(from, to)  // 🆕 aqui, usando paginação
+    .order("nome", { ascending: true }); // Opcional: ordena por nome
+  
   if (doentesError) throw doentesError;
 
-  // Pega todos os telefones relacionados
   const { data: telefonesData, error: telefonesError } = await supabase
     .from("telefones_doente")
     .select("*");
   if (telefonesError) throw telefonesError;
 
-  // Mapeia cada doente já com seu array de telefones
   return doentesData.map((d) => {
     const telefones = telefonesData
       .filter((t) => t.doente_id === d.id)

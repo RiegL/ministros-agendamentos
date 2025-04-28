@@ -60,12 +60,7 @@ const DoentesList = ({ doentes, onDeleteDoente }: DoentesListProps) => {
 
   const [openAgendarId, setOpenAgendarId] = useState<string | null>(null);
   const [openDeleteId, setOpenDeleteId] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [doenteId, setDoenteId] = useState<string | null>(null);
 
-  const [data, setData] = useState<Date | undefined>();
-  const [hora, setHora] = useState("");
-  const [observacoes, setObservacoes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeletingDoente, setIsDeletingDoente] = useState(false);
   const [activeVisits, setActiveVisits] = useState<{
