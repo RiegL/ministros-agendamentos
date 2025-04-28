@@ -20,7 +20,8 @@ export const getMinistros = async (): Promise<Ministro[]> => {
     role: item.role as 'admin' | 'user',
     senha: item.senha,
     createdAt: new Date(item.created_at),
-    codigo: item.codigo
+    codigo: item.codigo,
+    disabled: item.disabled,
   }));
 };
 
@@ -34,7 +35,8 @@ export const addMinistro = async (ministro: Omit<Ministro, 'id' | 'createdAt'>):
       telefone: ministro.telefone,
       role: ministro.role,
       senha: ministro.senha,
-      codigo: ministro.codigo
+      codigo: ministro.codigo,
+      disabled: ministro.disabled ?? false,
     })
     .select()
     .single();
@@ -50,8 +52,8 @@ export const addMinistro = async (ministro: Omit<Ministro, 'id' | 'createdAt'>):
     role: data.role as 'admin' | 'user',
     senha: data.senha,
     createdAt: new Date(data.created_at),
-    codigo: data.codigo
-
+    codigo: data.codigo,
+    disabled: data.disabled,
   };
 };
 
@@ -109,6 +111,7 @@ export const updateMinistro = async (ministro: Ministro): Promise<Ministro> => {
       role: ministro.role,
       senha: ministro.senha,
       codigo: ministro.codigo,
+      disabled: ministro.disabled
     })
     .eq("id", ministro.id)
     .select()
@@ -126,6 +129,7 @@ export const updateMinistro = async (ministro: Ministro): Promise<Ministro> => {
     senha: data.senha,
     createdAt: new Date(data.created_at),
     codigo: data.codigo,
+    disabled: data.disabled
   };
 };
 
@@ -147,6 +151,7 @@ export const getMinistroById = async (id: string): Promise<Ministro> => {
     role: data.role as 'admin' | 'user',
     senha: data.senha,
     createdAt: new Date(data.created_at),
-    codigo: data.codigo
+    codigo: data.codigo,
+    disabled: data.disabled
   };
 };

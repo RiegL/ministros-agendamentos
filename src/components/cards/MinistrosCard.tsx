@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, Calendar, Trash2, Edit } from "lucide-react";
+import { Mail, Phone, Calendar, Trash2, Edit, ActivitySquare, UserCheck, UserX } from "lucide-react";
 import { Ministro } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -24,20 +23,31 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { deleteMinistro, hasAgendamentosAssociados } from "@/services/ministros";
+import {
+  deleteMinistro,
+  hasAgendamentosAssociados,
+} from "@/services/ministros";
 import { useToast } from "@/hooks/use-toast";
+import { ativarUsuario, desativarUsuario } from "@/lib/supabaseAdmin";
+import { supabase } from "@/services/supabase-client";
 
 interface MinistrosCardProps {
   ministro: Ministro;
   onVerAgendamentos: (ministroId: string) => void;
   onDelete?: () => void;
-  onEdit: (ministro: Ministro) => void;  
+  onEdit: (ministro: Ministro) => void;
 }
 
-const MinistrosCard = ({ ministro, onVerAgendamentos, onDelete, onEdit }: MinistrosCardProps) => {
+const MinistrosCard = ({
+  ministro,
+  onVerAgendamentos,
+  onDelete,
+  onEdit,
+}: MinistrosCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDisabled, setIsDisabled] = useState(ministro.disabled);
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
@@ -50,12 +60,14 @@ const MinistrosCard = ({ ministro, onVerAgendamentos, onDelete, onEdit }: Minist
     try {
       // Verificar se há agendamentos associados
       const temAgendamentos = await hasAgendamentosAssociados(ministro.id);
-      
+
       if (temAgendamentos) {
-        setErrorMessage("Não é possível excluir este ministro porque existem agendamentos associados a ele. Cancele ou reatribua os agendamentos antes de excluir o ministro.");
+        setErrorMessage(
+          "Não é possível excluir este ministro porque existem agendamentos associados a ele. Cancele ou reatribua os agendamentos antes de excluir o ministro."
+        );
         return;
       }
-      
+
       await deleteMinistro(ministro.id);
 
       toast({
@@ -67,13 +79,13 @@ const MinistrosCard = ({ ministro, onVerAgendamentos, onDelete, onEdit }: Minist
       if (onDelete) onDelete();
     } catch (error) {
       let mensagem = "Não foi possível excluir o ministro.";
-      
+
       if (error instanceof Error) {
         mensagem = error.message;
       }
-      
+
       setErrorMessage(mensagem);
-      
+
       toast({
         title: "Erro ao excluir ministro",
         description: mensagem,
@@ -83,6 +95,39 @@ const MinistrosCard = ({ ministro, onVerAgendamentos, onDelete, onEdit }: Minist
       setIsDeleting(false);
     }
   };
+
+  async function handleToggleAtivar(ministro: Ministro) {
+    try {
+      if (ministro.disabled) {
+        await ativarUsuario(ministro.idAuth);
+        await supabase
+          .from("ministros")
+          .update({ disabled: false })
+          .eq("id", ministro.id);
+        toast({ title: "Ministro ativado com sucesso!" });
+        
+      } else {
+        await desativarUsuario(ministro.idAuth);
+        await supabase
+          .from("ministros")
+          .update({ disabled: true })
+          .eq("id", ministro.id);
+        toast({ title: "Ministro inativado com sucesso!" });
+      }
+      // Atualize a lista depois se quiser
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível alterar o status do ministro.",
+        variant: "destructive",
+      });
+    }
+  }
+
+  useEffect(() => {
+    setIsDisabled(ministro.disabled);
+  }, [ministro.disabled]); 
 
   return (
     <Card className="h-full flex flex-col">
@@ -105,26 +150,35 @@ const MinistrosCard = ({ ministro, onVerAgendamentos, onDelete, onEdit }: Minist
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
-        <Button 
-          className="w-full" 
+        <Button
+          className="w-full"
           onClick={() => onVerAgendamentos(ministro.id)}
           variant="outline"
         >
           <Calendar className="h-4 w-4 mr-2" />
           Ver Agendamentos
         </Button>
-        <Button 
-          className="w-full" 
+        <Button
+          className="w-full"
           onClick={() => onEdit(ministro)}
           variant="outline"
         >
           <Edit className="h-4 w-4 mr-2" />
           Editar Ministro
         </Button>
+        <Button
+          className="w-full"
+          onClick={() => handleToggleAtivar(ministro)}
+          variant="outline"
+        >
+          
+          {ministro.disabled ?<UserCheck className="h-4 w-4 mr-2" />: <UserX className="h-4 w-4 mr-2" />}
+          {ministro.disabled ? "Ativar Ministro" : "Inativar Ministro"}
+        </Button>
 
         {isAdmin && (
-          <Button 
-            className="w-full" 
+          <Button
+            className="w-full"
             variant="destructive"
             onClick={() => setIsDeleteDialogOpen(true)}
           >

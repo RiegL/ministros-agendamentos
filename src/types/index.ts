@@ -27,6 +27,7 @@ export interface Ministro {
   idAuth?: string;
   createdAt: Date;
   codigo: number;
+  disabled: boolean; 
 }
 
 export interface Agendamento {

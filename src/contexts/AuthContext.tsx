@@ -40,12 +40,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const signIn = async (email: string, senha: string): Promise<boolean> => {
     try {
-      const { data: authData, error: authError } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password: senha,
-        });
-
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha,
+      });
+  
       if (authError || !authData?.user) {
         toast({
           title: "Falha no login",
@@ -54,14 +53,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         return false;
       }
-
-      // Busca o perfil do ministro
+  
+      // 👇 AQUI corrigido
+      if (authData.user?.app_metadata?.disabled) {
+        toast({
+          title: "Conta desativada",
+          description: "Sua conta foi desativada. Contate o administrador.",
+          variant: "destructive",
+        });
+        await supabase.auth.signOut(); // garante que não fique logado
+        return false;
+      }
+  
+      // Busca o perfil do ministro normalmente
       const { data: ministroData, error: ministroError } = await supabase
         .from("ministros")
         .select("*")
         .eq("id_auth", authData.user.id)
         .single();
-
+  
       if (ministroError || !ministroData) {
         toast({
           title: "Erro",
@@ -70,8 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         return false;
       }
-
-      // **NOVA VERIFICAÇÃO DE ROLE**: apenas admins podem usar email/senha
+  
       if (ministroData.role !== "admin") {
         toast({
           title: "Acesso negado",
@@ -80,8 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         return false;
       }
-
-      // --- resto do mapeamento e armazenamento ---
+  
       const mappedMinistro: Ministro = {
         id: ministroData.id,
         nome: ministroData.nome,
@@ -97,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsAuthenticated(true);
       setIsAdmin(true);
       localStorage.setItem("currentMinistro", JSON.stringify(mappedMinistro));
-
+  
       toast({
         title: "Login bem-sucedido",
         description: `Bem-vindo, ${mappedMinistro.nome}!`,
@@ -113,17 +121,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return false;
     }
   };
-
+  
   const signInWithCode = async (codigo: number): Promise<boolean> => {
     try {
-      // 1. Busca o ministro pelo código
       const { data: ministroData, error: ministroError } = await supabase
         .from("ministros")
         .select("*")
         .eq("codigo", codigo)
         .in("role", ["user", "admin"])
         .maybeSingle();
-
+  
       if (ministroError) {
         toast({
           title: "Erro de login",
@@ -132,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         return false;
       }
-
+  
       if (!ministroData) {
         toast({
           title: "Código inválido",
@@ -141,23 +148,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         return false;
       }
-
-      // 2. Tenta autenticar via Supabase Auth com email e senha do ministro
-      const { error: authError } = await supabase.auth.signInWithPassword({
+  
+      // Tenta autenticar com email e senha do ministro
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: ministroData.email,
         password: ministroData.senha,
       });
-
-      if (authError) {
+  
+      if (authError || !authData?.user) {
         toast({
           title: "Erro de autenticação",
-          description: authError.message,
+          description: authError?.message || "Erro ao autenticar.",
           variant: "destructive",
         });
         return false;
       }
-
-      // 3. Login ok: monta o objeto e atualiza o contexto normalmente
+  
+      // 👇 Checagem de conta desativada
+      if (authData.user?.app_metadata?.disabled) {
+        toast({
+          title: "Conta desativada",
+          description: "Sua conta foi desativada. Contate o administrador.",
+          variant: "destructive",
+        });
+        await supabase.auth.signOut(); 
+        return false;
+      }
+  
       const mappedMinistro: Ministro = {
         id: ministroData.id,
         nome: ministroData.nome,
@@ -169,18 +186,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         idAuth: ministroData.id_auth,
         codigo: ministroData.codigo,
       };
-
+  
       setCurrentMinistro(mappedMinistro);
       setIsAuthenticated(true);
       setIsAdmin(mappedMinistro.role === "admin");
-
+  
       localStorage.setItem("currentMinistro", JSON.stringify(mappedMinistro));
-
+  
       toast({
         title: "Login bem-sucedido",
         description: `Bem-vindo, ${mappedMinistro.nome}!`,
       });
-
+  
       return true;
     } catch (err) {
       console.error("Erro geral no login com código:", err);
@@ -192,6 +209,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return false;
     }
   };
+  
+  
 
   const signOut = () => {
     setCurrentMinistro(null);

@@ -125,6 +125,7 @@ export type Database = {
           senha: string
           telefone: string
           codigo: number
+          disabled: boolean
         }
         Insert: {
           created_at?: string
@@ -136,6 +137,7 @@ export type Database = {
           senha: string
           telefone: string
           codigo: number
+          disabled: boolean
         }
         Update: {
           created_at?: string
@@ -147,6 +149,7 @@ export type Database = {
           senha?: string
           telefone?: string
           codigo: number
+          disabled: boolean
         }
         Relationships: []
       }
