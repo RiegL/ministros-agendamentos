@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, Calendar, Users, UserCog, LogOut, User } from "lucide-react";
+import { Menu, X, Calendar, Users, UserCog, LogOut, User, ChartBarIncreasing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -74,7 +74,7 @@ const MobileMenu = () => {
                     className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary-foreground/10"
                     onClick={() => setIsOpen(false)}
                   >
-                    <Calendar className="inline-block mr-2" size={18} />
+                    <ChartBarIncreasing className="inline-block mr-2" size={18} />
                     Relatórios
                   </Link>
                 )}

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, UserPlus, LogOut, UserCog, User } from "lucide-react";
+import { Calendar, Users, UserPlus, LogOut, UserCog, User, ChartBarIncreasing } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
@@ -55,7 +55,7 @@ const Navbar = () => {
                       to="/relatorios"
                       className="hover:bg-primary-foreground/10 px-3 py-2 rounded-md"
                     >
-                      <Calendar className="inline-block mr-2" size={18} />
+                      <ChartBarIncreasing className="inline-block mr-2" size={18} />
                       Relatórios
                     </Link>
                   )}

@@ -2,7 +2,7 @@ import React from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, UserPlus, Users, Clock } from "lucide-react";
+import { Calendar, UserPlus, Users, Clock, ChartBarIncreasing } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -87,7 +87,7 @@ const Index = () => {
                   to="/relatorios"
                   className="flex flex-col items-center text-center"
                 >
-                  <Calendar className="h-12 w-12 mb-4 text-primary" />
+                  <ChartBarIncreasing className="h-12 w-12 mb-4 text-primary" />
                   <h2 className="text-xl font-semibold mb-2">Relatórios</h2>
                   <p className="text-sm text-muted-foreground">
                     Visualize relatórios de agendamentos e doentes.

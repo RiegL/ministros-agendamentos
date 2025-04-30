@@ -247,7 +247,6 @@ const RelatoriosPage = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Data</TableHead>
-                          <TableHead>Hora</TableHead>
                           <TableHead>Doente</TableHead>
                           <TableHead>Setor</TableHead>
                           <TableHead>Ministro</TableHead>
@@ -260,7 +259,6 @@ const RelatoriosPage = () => {
                             <TableCell>
                               {format(new Date(relatorio.data), "dd/MM/yyyy")}
                             </TableCell>
-                            <TableCell>{relatorio.hora}</TableCell>
                             <TableCell>{relatorio.doente.nome}</TableCell>
                             <TableCell>{relatorio.doente.setor}</TableCell>
                             <TableCell>{relatorio.ministro.nome}</TableCell>
