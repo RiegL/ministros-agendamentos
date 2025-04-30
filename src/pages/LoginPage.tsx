@@ -322,7 +322,7 @@ const LoginPage = () => {
                 className="absolute inset-y-0 right-0 flex items-center px-3"
                 onClick={togglePasswordVisibility}
               >
-                {showPassword ? <EyeOff /> : <Eye />}
+                {showPassword ? <Eye /> : <EyeOff />}
               </Button>
             </div>
             <AlertDialogFooter>
