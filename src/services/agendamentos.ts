@@ -167,3 +167,28 @@ export const deleteAgendamento = async (id: string): Promise<void> => {
   
   if (error) throw error;
 };
+
+/** Busca agendamentos entre dataFrom e dataTo (inclusive) */
+export async function getAgendamentosPorPeriodo(
+  dataFrom: string, // “YYYY-MM-DD”
+  dataTo:   string  // “YYYY-MM-DD”
+): Promise<Agendamento[]> {
+  const { data, error } = await supabase
+    .from('agendamentos')
+    .select('*')
+    .gte('data', dataFrom)
+    .lte('data', dataTo);
+  if (error) throw error;
+  return data.map(row => ({
+    id: row.id,
+    doenteId: row.doente_id,
+    ministroId: row.ministro_id,
+    ministroSecundarioId: row.ministro_secundario_id || undefined,
+    data: new Date(row.data),
+    hora: row.hora,
+    status: row.status as any,
+    observacoes: row.observacoes ?? undefined,
+    createdAt: new Date(row.created_at)
+  }));
+}
+

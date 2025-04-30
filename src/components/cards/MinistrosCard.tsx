@@ -8,7 +8,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, Calendar, Trash2, Edit, ActivitySquare, UserCheck, UserX } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  Calendar,
+  Trash2,
+  Edit,
+  ActivitySquare,
+  UserCheck,
+  UserX,
+} from "lucide-react";
 import { Ministro } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -48,9 +57,10 @@ const MinistrosCard = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDisabled, setIsDisabled] = useState(ministro.disabled);
-  const { isAdmin } = useAuth();
+  const { isAdmin, currentMinistro} = useAuth();
   const { toast } = useToast();
-
+console.log('usuario do auth',currentMinistro.idAuth);
+console.log('usuario ministro',ministro.idAuth);
   const handleDeleteMinistro = async () => {
     if (!isAdmin) return;
 
@@ -96,25 +106,35 @@ const MinistrosCard = ({
     }
   };
 
-  async function handleToggleAtivar(ministro: Ministro) {
+  //ativar e desativar conta ministro
+  async function handleToggleAtivar() {
     try {
-      if (ministro.disabled) {
+      if(ministro.idAuth === currentMinistro.idAuth) {
+        toast({
+          title: "Erro",
+          description: "Você não pode ativar ou desativar sua própria conta.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (isDisabled) {
         await ativarUsuario(ministro.idAuth);
         await supabase
           .from("ministros")
           .update({ disabled: false })
           .eq("id", ministro.id);
-        toast({ title: "Ministro ativado com sucesso!" });
-        
+        toast({ title: "Ministro ativado!" });
+        setIsDisabled(false);
       } else {
         await desativarUsuario(ministro.idAuth);
         await supabase
           .from("ministros")
           .update({ disabled: true })
           .eq("id", ministro.id);
-        toast({ title: "Ministro inativado com sucesso!" });
+        toast({ title: "Ministro desativado!" });
+        setIsDisabled(true);
       }
-      // Atualize a lista depois se quiser
     } catch (error) {
       console.error(error);
       toast({
@@ -127,7 +147,7 @@ const MinistrosCard = ({
 
   useEffect(() => {
     setIsDisabled(ministro.disabled);
-  }, [ministro.disabled]); 
+  }, [ministro.disabled]);
 
   return (
     <Card className="h-full flex flex-col">
@@ -168,12 +188,15 @@ const MinistrosCard = ({
         </Button>
         <Button
           className="w-full"
-          onClick={() => handleToggleAtivar(ministro)}
-          variant="outline"
+          onClick={handleToggleAtivar}
+          variant={isDisabled ? "default" : "destructive"}
         >
-          
-          {ministro.disabled ?<UserCheck className="h-4 w-4 mr-2" />: <UserX className="h-4 w-4 mr-2" />}
-          {ministro.disabled ? "Ativar Ministro" : "Inativar Ministro"}
+          {isDisabled ? (
+            <UserCheck className="h-4 w-4 mr-2" />
+          ) : (
+            <UserX className="h-4 w-4 mr-2" />
+          )}
+          {isDisabled ? "Ativar Ministro" : "Desativar Ministro"}
         </Button>
 
         {isAdmin && (

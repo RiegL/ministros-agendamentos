@@ -100,6 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         createdAt: new Date(ministroData.created_at),
         idAuth: ministroData.id_auth,
         codigo: ministroData.codigo,
+        disabled: ministroData.disabled,
       };
       setCurrentMinistro(mappedMinistro);
       setIsAuthenticated(true);
@@ -185,6 +186,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         createdAt: new Date(ministroData.created_at),
         idAuth: ministroData.id_auth,
         codigo: ministroData.codigo,
+        disabled: ministroData.disabled,
       };
   
       setCurrentMinistro(mappedMinistro);

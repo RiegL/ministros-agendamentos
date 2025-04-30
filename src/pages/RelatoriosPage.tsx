@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import Layout from "@/components/Layout";
-import { getDoentes } from '@/services/doentes';
-import { getMinistros } from '@/services/ministros';
-import { getAgendamentos } from '@/services/agendamentos';
+import { getDoentes } from "@/services/doentes";
+import { getMinistros } from "@/services/ministros";
+import {
+  getAgendamentos,
+  getAgendamentosPorPeriodo,
+} from "@/services/agendamentos";
 import { Agendamento, Doente, Ministro } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -42,6 +45,7 @@ const RelatoriosPage = () => {
   const [ministroFiltro, setMinistroFiltro] = useState("todos");
 
   const [relatorios, setRelatorios] = useState<any[]>([]);
+  const [naoVisitados, setNaoVisitados] = useState<Doente[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,6 +95,28 @@ const RelatoriosPage = () => {
     }
   }, [isLoading, agendamentos, doentes, ministros, isAdmin, currentMinistro]);
 
+  // calcula primeiro/último dia do mês passado
+  const hoje = new Date();
+  const inicioMesPassado = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+  const fimMesPassado = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+
+  useEffect(() => {
+    if (!isLoading) {
+      (async () => {
+        // 1) pega agendamentos do mês passado
+        const ags = await getAgendamentosPorPeriodo(
+          inicioMesPassado.toISOString().slice(0, 10),
+          fimMesPassado.toISOString().slice(0, 10)
+        );
+        const idsVisitados = new Set(ags.map((a) => a.doenteId));
+
+        // 2) filtra doentes não visitados
+        const lista = doentes.filter((d) => !idsVisitados.has(d.id));
+        setNaoVisitados(lista);
+      })();
+    }
+  }, [isLoading, doentes]);
+
   const filteredRelatorios = relatorios.filter((relatorio) => {
     if (
       nomeFiltro &&
@@ -129,7 +155,9 @@ const RelatoriosPage = () => {
     return true;
   });
 
-  const setores = Array.from(new Set(doentes.map((doente) => doente.setor))).filter(Boolean);
+  const setores = Array.from(
+    new Set(doentes.map((doente) => doente.setor))
+  ).filter(Boolean);
 
   const resetFilters = () => {
     setNomeFiltro("");
@@ -148,12 +176,12 @@ const RelatoriosPage = () => {
   const handlePrint = () => {
     if (!printRef.current) return;
     const printContents = printRef.current.innerHTML;
-    const printWindow = window.open('', '', 'height=600,width=800');
+    const printWindow = window.open("", "", "height=600,width=800");
     if (printWindow) {
-      printWindow.document.write('<html><head><title>Relatório</title>');
-      printWindow.document.write('</head><body>');
+      printWindow.document.write("<html><head><title>Relatório</title>");
+      printWindow.document.write("</head><body>");
       printWindow.document.write(printContents);
-      printWindow.document.write('</body></html>');
+      printWindow.document.write("</body></html>");
       printWindow.document.close();
       printWindow.print();
     }
@@ -249,8 +277,10 @@ const RelatoriosPage = () => {
                                 )}
                               >
                                 {relatorio.status === "agendado" && "Agendado"}
-                                {relatorio.status === "concluido" && "Concluído"}
-                                {relatorio.status === "cancelado" && "Cancelado"}
+                                {relatorio.status === "concluido" &&
+                                  "Concluído"}
+                                {relatorio.status === "cancelado" &&
+                                  "Cancelado"}
                               </span>
                             </TableCell>
                           </TableRow>
@@ -262,6 +292,34 @@ const RelatoriosPage = () => {
               )}
             </CardContent>
           </Card>
+          <div ref={printRef} className="mt-6">
+            {/* relatório de não visitados */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>
+                  Doentes não visitados em{" "}
+                  {format(inicioMesPassado, "MMMM/yyyy", { locale: ptBR })}
+                </CardTitle>
+                <CardDescription>
+                  {naoVisitados.length} doente(s) sem qualquer agendamento no
+                  mês passado
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {naoVisitados.length === 0 ? (
+                  <p>Todos os doentes tiveram visita agendada no período.</p>
+                ) : (
+                  <ul className="list-disc pl-6 space-y-1">
+                    {naoVisitados.map((d) => (
+                      <li key={d.id}>
+                        {d.nome} — {d.setor}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </Layout>
