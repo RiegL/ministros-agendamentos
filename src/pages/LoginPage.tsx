@@ -111,16 +111,50 @@ const LoginPage = () => {
         description: "Informe a nova senha.",
         variant: "destructive",
       });
+
     setIsResettingPassword(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setIsResettingPassword(false);
-    if (error)
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (updateError) {
       toast({
         title: "Erro ao redefinir",
-        description: error.message,
+        description: updateError.message,
         variant: "destructive",
       });
-    else {
+      setIsResettingPassword(false);
+      return;
+    }
+
+    // Atualiza também na tabela "ministros"
+    const { data: user, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user?.user?.email) {
+      toast({
+        title: "Erro ao buscar usuário",
+        description: userError?.message ?? "E-mail não encontrado.",
+        variant: "destructive",
+      });
+      setIsResettingPassword(false);
+      return;
+    }
+
+    const { error: updateMinistroError } = await supabase
+      .from("ministros")
+      .update({ senha: newPassword } as any)
+      .eq("email", user.user.email);
+
+    setIsResettingPassword(false);
+
+    if (updateMinistroError) {
+      toast({
+        title: "Senha redefinida no Auth",
+        description: "Mas não foi atualizada em 'ministros'.",
+        variant: "destructive",
+      });
+    } else {
       toast({
         title: "Senha redefinida",
         description: "Faça login com a nova senha.",
@@ -179,7 +213,7 @@ const LoginPage = () => {
                   />
                   <Button
                     type="button"
-                    size="sm"
+                    size="default"
                     variant="ghost"
                     className="absolute inset-y-0 right-0 flex items-center px-3"
                     onClick={togglePasswordVisibility}
@@ -273,17 +307,17 @@ const LoginPage = () => {
                 Digite a nova senha abaixo:
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <div className="relative px-6 py-2">
+            <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="senha nova"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="pr-10"
+                className="pr-10" // Garantir que haja espaço para o ícone
               />
               <Button
                 type="button"
-                size="sm"
+                size="default"
                 variant="ghost"
                 className="absolute inset-y-0 right-0 flex items-center px-3"
                 onClick={togglePasswordVisibility}
