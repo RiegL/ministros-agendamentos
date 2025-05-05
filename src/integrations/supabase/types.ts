@@ -14,7 +14,7 @@ export type Database = {
           created_at: string
           data: string
           doente_id: string
-          hora: string
+          hora: string | null
           id: string
           ministro_id: string
           ministro_secundario_id: string | null
@@ -25,7 +25,7 @@ export type Database = {
           created_at?: string
           data: string
           doente_id: string
-          hora: string
+          hora?: string | null
           id?: string
           ministro_id: string
           ministro_secundario_id?: string | null
@@ -36,7 +36,7 @@ export type Database = {
           created_at?: string
           data?: string
           doente_id?: string
-          hora?: string
+          hora?: string | null
           id?: string
           ministro_id?: string
           ministro_secundario_id?: string | null
@@ -78,7 +78,6 @@ export type Database = {
           nome: string
           observacoes: string | null
           setor: string
-          // telefone: string
         }
         Insert: {
           cadastrado_por: string
@@ -90,7 +89,6 @@ export type Database = {
           nome: string
           observacoes?: string | null
           setor: string
-          // telefone: string
         }
         Update: {
           cadastrado_por?: string
@@ -102,7 +100,6 @@ export type Database = {
           nome?: string
           observacoes?: string | null
           setor?: string
-          // telefone?: string
         }
         Relationships: [
           {
@@ -116,7 +113,9 @@ export type Database = {
       }
       ministros: {
         Row: {
+          codigo: number | null
           created_at: string
+          disabled: boolean | null
           email: string
           id: string
           id_auth: string | null
@@ -124,11 +123,11 @@ export type Database = {
           role: string
           senha: string
           telefone: string
-          codigo: number
-          disabled: boolean
         }
         Insert: {
+          codigo?: number | null
           created_at?: string
+          disabled?: boolean | null
           email: string
           id?: string
           id_auth?: string | null
@@ -136,11 +135,11 @@ export type Database = {
           role: string
           senha: string
           telefone: string
-          codigo: number
-          disabled: boolean
         }
         Update: {
+          codigo?: number | null
           created_at?: string
+          disabled?: boolean | null
           email?: string
           id?: string
           id_auth?: string | null
@@ -148,8 +147,6 @@ export type Database = {
           role?: string
           senha?: string
           telefone?: string
-          codigo: number
-          disabled: boolean
         }
         Relationships: []
       }
