@@ -2,6 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { Ministro } from "@/types";
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export const getMinistros = async (): Promise<Ministro[]> => {
   const { data, error } = await supabase
@@ -68,7 +69,18 @@ export const hasAgendamentosAssociados = async (ministroId: string): Promise<boo
 };
 
 export const deleteMinistro = async (id: string) => {
-  // Deletar apenas da tabela ministros
+  // 1. Buscar o ministro primeiro para pegar o id_auth
+  const { data: ministro, error: fetchError } = await supabase
+    .from('ministros')
+    .select('id_auth')
+    .eq('id', id)
+    .single();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  // 2. Deletar da tabela ministros
   const { error: deleteError } = await supabase
     .from('ministros')
     .delete()
@@ -76,6 +88,15 @@ export const deleteMinistro = async (id: string) => {
 
   if (deleteError) {
     throw new Error(deleteError.message);
+  }
+
+  // 3. Se existir id_auth, deletar o usuário do auth
+  if (ministro?.id_auth) {
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(ministro.id_auth);
+
+    if (authError) {
+      throw new Error('Usuário deletado da tabela, mas não foi possível deletar do auth: ' + authError.message);
+    }
   }
 };
 
@@ -116,7 +137,7 @@ export const getMinistroById = async (id: string): Promise<Ministro> => {
     .from('ministros')
     .select('*')
     .eq('id', id)
-    .single();
+    .single(); // como é 1 só
 
   if (error) throw error;
 

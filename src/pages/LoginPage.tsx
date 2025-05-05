@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,6 +60,11 @@ const LoginPage = () => {
     if (isAuthenticated) navigate("/");
   }, [isAuthenticated, navigate]);
 
+  useEffect(() => {
+    if (window.location.hash.includes("type=recovery")) {
+      setShowNewPasswordDialog(true);
+    }
+  }, []);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (modoLogin === "admin") {
@@ -82,37 +86,21 @@ const LoginPage = () => {
         description: "Informe o e-mail.",
         variant: "destructive",
       });
-    
     setIsSendingReset(true);
-    
-    try {
-      // Verificar se o email existe na tabela de ministros
-      const { data, error } = await supabase
-        .from("ministros")
-        .select("id, email, nome")
-        .eq("email", resetEmail)
-        .eq("role", "admin")
-        .maybeSingle();
-      
-      if (error || !data) {
-        toast({
-          title: "E-mail não encontrado",
-          description: "Este e-mail não está cadastrado como administrador.",
-          variant: "destructive",
-        });
-      } else {
-        // Mostrar diálogo para definir nova senha
-        setShowNewPasswordDialog(true);
-        setShowResetDialog(false);
-      }
-    } catch (err) {
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: window.location.origin + "/login",
+    });
+    setIsSendingReset(false);
+    if (error)
       toast({
-        title: "Erro ao processar solicitação",
-        description: "Tente novamente mais tarde.",
+        title: "Erro ao enviar link",
+        description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setIsSendingReset(false);
+    else {
+      toast({ title: "Link enviado", description: "Verifique seu e-mail." });
+      setShowResetDialog(false);
+      setResetEmail("");
     }
   };
 
@@ -126,34 +114,52 @@ const LoginPage = () => {
 
     setIsResettingPassword(true);
 
-    try {
-      // Atualizar a senha diretamente na tabela ministros
-      const { error } = await supabase
-        .from("ministros")
-        .update({ senha: newPassword })
-        .eq("email", resetEmail);
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
 
-      if (error) {
-        toast({
-          title: "Erro ao redefinir senha",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Senha redefinida",
-          description: "Faça login com a nova senha.",
-        });
-        setShowNewPasswordDialog(false);
-      }
-    } catch (err) {
+    if (updateError) {
       toast({
-        title: "Erro ao processar solicitação",
-        description: "Tente novamente mais tarde.",
+        title: "Erro ao redefinir",
+        description: updateError.message,
         variant: "destructive",
       });
-    } finally {
       setIsResettingPassword(false);
+      return;
+    }
+
+    // Atualiza também na tabela "ministros"
+    const { data: user, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user?.user?.email) {
+      toast({
+        title: "Erro ao buscar usuário",
+        description: userError?.message ?? "E-mail não encontrado.",
+        variant: "destructive",
+      });
+      setIsResettingPassword(false);
+      return;
+    }
+
+    const { error: updateMinistroError } = await supabase
+      .from("ministros")
+      .update({ senha: newPassword } as any)
+      .eq("email", user.user.email);
+
+    setIsResettingPassword(false);
+
+    if (updateMinistroError) {
+      toast({
+        title: "Senha redefinida no Auth",
+        description: "Mas não foi atualizada em 'ministros'.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Senha redefinida",
+        description: "Faça login com a nova senha.",
+      });
+      setShowNewPasswordDialog(false);
     }
   };
 
@@ -251,7 +257,11 @@ const LoginPage = () => {
           </CardContent>
           <CardFooter>
             <Button type="submit" className="w-full">
-              Entrar
+              {modoLogin === "admin" && isAuthenticated
+                ? "Entrando..."
+                : isAuthenticated
+                ? "Entrando..."
+                : "Entrar"}
             </Button>
           </CardFooter>
         </form>
@@ -279,7 +289,7 @@ const LoginPage = () => {
                 onClick={handleResetPassword}
                 disabled={isSendingReset}
               >
-                {isSendingReset ? "Verificando..." : "Continuar"}
+                {isSendingReset ? "Enviando..." : "Enviar link"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -303,7 +313,7 @@ const LoginPage = () => {
                 placeholder="senha nova"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="pr-10"
+                className="pr-10" // Garantir que haja espaço para o ícone
               />
               <Button
                 type="button"

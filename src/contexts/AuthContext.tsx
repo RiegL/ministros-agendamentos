@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { Ministro, AuthContextType } from "@/types";
 import { toast } from "@/hooks/use-toast";
@@ -41,28 +40,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const signIn = async (email: string, senha: string): Promise<boolean> => {
     try {
-      // Buscar o ministro apenas pelo email e senha
-      const { data: ministroData, error: ministroError } = await supabase
-        .from("ministros")
-        .select("*")
-        .eq("email", email)
-        .eq("senha", senha)
-        .eq("role", "admin")
-        .single();
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha,
+      });
   
-      if (ministroError || !ministroData) {
+      if (authError || !authData?.user) {
         toast({
           title: "Falha no login",
-          description: "Credenciais inválidas.",
+          description: authError?.message || "Credenciais inválidas.",
           variant: "destructive",
         });
         return false;
       }
   
-      if (ministroData.disabled) {
+      // 👇 AQUI corrigido
+      if (authData.user?.app_metadata?.disabled) {
         toast({
           title: "Conta desativada",
           description: "Sua conta foi desativada. Contate o administrador.",
+          variant: "destructive",
+        });
+        await supabase.auth.signOut(); // garante que não fique logado
+        return false;
+      }
+  
+      // Busca o perfil do ministro normalmente
+      const { data: ministroData, error: ministroError } = await supabase
+        .from("ministros")
+        .select("*")
+        .eq("id_auth", authData.user.id)
+        .single();
+  
+      if (ministroError || !ministroData) {
+        toast({
+          title: "Erro",
+          description: "Ministro não encontrado.",
+          variant: "destructive",
+        });
+        return false;
+      }
+  
+      if (ministroData.role !== "admin") {
+        toast({
+          title: "Acesso negado",
+          description: "Ministros comuns devem usar o código de acesso.",
           variant: "destructive",
         });
         return false;
@@ -80,7 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         codigo: ministroData.codigo,
         disabled: ministroData.disabled,
       };
-      
       setCurrentMinistro(mappedMinistro);
       setIsAuthenticated(true);
       setIsAdmin(true);
@@ -128,13 +149,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         return false;
       }
-      
-      if (ministroData.disabled) {
+  
+      // Tenta autenticar com email e senha do ministro
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: ministroData.email,
+        password: ministroData.senha,
+      });
+  
+      if (authError || !authData?.user) {
+        toast({
+          title: "Erro de autenticação",
+          description: authError?.message || "Erro ao autenticar.",
+          variant: "destructive",
+        });
+        return false;
+      }
+  
+      // 👇 Checagem de conta desativada
+      if (authData.user?.app_metadata?.disabled) {
         toast({
           title: "Conta desativada",
           description: "Sua conta foi desativada. Contate o administrador.",
           variant: "destructive",
         });
+        await supabase.auth.signOut(); 
         return false;
       }
   
@@ -174,11 +212,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
   
+  
+
   const signOut = () => {
     setCurrentMinistro(null);
     setIsAuthenticated(false);
     setIsAdmin(false);
     localStorage.removeItem("currentMinistro");
+
+    supabase.auth.signOut();
 
     toast({
       title: "Logout realizado",
