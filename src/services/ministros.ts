@@ -40,7 +40,6 @@ export const addMinistro = async (ministro: Omit<Ministro, 'id' | 'createdAt'>):
     })
     .select()
     .single();
-
   if (error) throw error;
 
   return {
